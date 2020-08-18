@@ -55,5 +55,9 @@ CHIP ALU {
     Mux16(a=andcompute, b=addcompute, sel=f, out=computeout);
 
     Not16(in=computeout, out=notcomputeout);
-    Mux16(a=computeout, b=notcomputeout, sel=no, out=out);
+    Mux16(a=computeout, b=notcomputeout, sel=no, out=out, out=output, out[15]=ngout);
+    Mux(a=false, b=true, sel=ngout, out=ng);
+
+    Or16Out1(a=output, out=orout);
+    Not(in=orout, out=zr);
 }
