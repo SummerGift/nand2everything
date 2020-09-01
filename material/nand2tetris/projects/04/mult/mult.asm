@@ -6,4 +6,43 @@
 // Multiplies R0 and R1 and stores the result in R2.
 // (R0, R1, R2 refer to RAM[0], RAM[1], and RAM[2], respectively.)
 
-// Put your code here.
+
+// set R0 to varible number and set R1 to varible times
+    @0
+    D=M
+
+    @number
+    M=D
+
+    @1
+    D=M
+
+    @times
+    M=D
+
+    @result
+    M=0
+
+(LOOP)
+    @result
+    D=M
+    @number
+    D=D+M
+    @result
+    M=D
+
+    @times
+    M=M-1
+    D=M
+    @LOOP
+    D;JNE
+
+(OUTPUT)
+    @result
+    D=M
+    @2
+    M=D
+
+(END)
+    @END
+    0;JMP
