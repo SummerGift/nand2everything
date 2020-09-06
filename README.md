@@ -15,3 +15,4 @@
 - [x] 基本逻辑门（And16 Or16 Not16）、多路选择器（MUX16）、分路器（DMUX16）
 - [x] 半加器（HalfAdder）、全加器（FullAdder）、加法器（Add16）、算数逻辑单元（ALU）
 - [x] 16 位寄存器（Register）、程序计数器（PC）、RAM8 - RAM16K
+- [x] 机器语言（Machine Language）、输入输出（Input/Output）
