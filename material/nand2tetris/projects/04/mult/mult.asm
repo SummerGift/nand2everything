@@ -23,6 +23,11 @@
     @result
     M=0
 
+    @times
+    D=M
+    @OUTPUT
+    D;JEQ
+
 (LOOP)
     @result
     D=M
