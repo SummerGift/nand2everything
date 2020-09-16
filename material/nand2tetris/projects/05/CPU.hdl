@@ -39,5 +39,19 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // Decode the instruction to control bits
+
+    // Choose the value from Aregister or inM to ALU
+    Mux16(a=instruction, b=outM, sel=, out=OutToRegA);
+    ARegister(in=OutToRegA, load=, out=AregOutToALU, out=addressM);
+    Mux16(a=AregOutToALU, b=inM, sel=, out=OutToALU);
+
+    // Get a value from memory and output to ALU
+    DRegister(in=outM, load=, out=dRegOutToALU);
+
+    // Perform the calcalte with the value from Dregister and A/M
+    ALU(x=dRegOutToALU, y=OutToALU, zx=, nx=, zy=, ny=, f=, no=, out=outM, zr=, ng=);
+
+    // Determine perform PC + 1 or load a new address to PC
+    PC(in=AregOutToALU, load=, inc=, reset=reset, out=pc);
 }
