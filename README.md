@@ -12,7 +12,28 @@
 
 目前已经完成主要功能列表如下：
 
-- [x] 基本逻辑门（And16 Or16 Not16）、多路选择器（MUX16）、分路器（DMUX16）
-- [x] 半加器（HalfAdder）、全加器（FullAdder）、加法器（Add16）、算数逻辑单元（ALU）
-- [x] 16 位寄存器（Register）、程序计数器（PC）、RAM8 - RAM16K
-- [x] 机器语言（Machine Language）、输入输出（Input/Output）
+### [Project 1](01)
+- [x] 基本逻辑门（And16 Or16 Not16）
+- [x] 多路选择器（MUX16）
+- [x] 分路器（DMUX16）
+
+### [Project 2](02)
+- [x] 半加器（HalfAdder）
+- [x] 全加器（FullAdder）
+- [x] 加法器（Add16）
+- [x] 算数逻辑单元（ALU）
+
+### [Project 3](03)
+- [x] 16 位寄存器（Register）
+- [x] 程序计数器（PC）
+- [x] RAM8 - RAM16K
+
+### [Project 4](04)
+- [x] 机器语言（Machine Language）
+- [x] 键盘、显示屏、输入输出（Input/Output）
+
+### [Project 5](05)
+- [x] 存储器（Memory）
+- [x] 中央处理器（CPU）
+- [x] 控制器（Controller）
+- [x] 计算机（Computer）
