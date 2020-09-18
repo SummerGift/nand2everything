@@ -39,37 +39,45 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Choose the value from Aregister or inM to A Register
-    Mux16(a=instruction, b=outMtoAorD, sel=instruction[10], out=OutToRegA);
+    // Choose the value from instruction or inM to A Register
+
+    Mux16(a=instruction, b=outMtoAorD, sel=instruction[15], out=OutToRegA);
 
     // if it's a address value in instruction, then load it into Aregister
-    ARegister(in=OutToRegA, load=instruction[0], out=AregOutToALU, out[0..14]=addressM);
+    Not(in=instruction[15], out=isaddress);
+    And(a=instruction[15], b=instruction[5], out=DestIsAreg);
+    Or(a=isaddress, b=DestIsAreg, out=loadAreg);
+    ARegister(in=OutToRegA, load=loadAreg, out=AregOutToALU, out[0..14]=addressM);
 
-    Mux16(a=AregOutToALU, b=inM, sel=instruction[3], out=OutToALU);
+    Mux16(a=AregOutToALU, b=inM, sel=instruction[12], out=OutToALU);
  
     // Get a value from memory and output to ALU
-    DRegister(in=outMtoAorD, load=instruction[11], out=dRegOutToALU);
+    And(a=instruction[15], b=instruction[4], out=loadDreg);
+    DRegister(in=outMtoAorD, load=loadDreg, out=dRegOutToALU);
 
     // Perform the calcalte with the value from Dregister and A/M
     ALU(x=dRegOutToALU, y=OutToALU, 
-        zx=instruction[4], nx=instruction[5], zy=instruction[6], 
-        ny=instruction[7], f=instruction[8], no=instruction[9], 
+        zx=instruction[11], nx=instruction[10], zy=instruction[9], 
+        ny=instruction[8], f=instruction[7], no=instruction[6], 
         out=outMtoAorD, out=outM, zr=equelzero, ng=lesszero);
 
-    And(a=lesszero, b=equelzero, out=greaterzeroout);
-    Not(in=greaterzeroout, out=greaterzero);
+    Nand(a=equelzero, b=lesszero, out=greaterzero);
 
     // determine if need to write result to memory
-    Mux(a=false, b=true, sel=instruction[12], out=writeM);
+    Mux(a=false, b=instruction[3], sel=instruction[15], out=writeM);
 
-    And(a=instruction[13], b=lesszero, out=islesszero);
-    And(a=instruction[14], b=equelzero, out=isequelzero);
-    And(a=instruction[15], b=greaterzero, out=isgreaterzero);
+    And(a=instruction[2], b=lesszero, out=islesszero);
+    And(a=instruction[1], b=equelzero, out=isequelzero);
+    And(a=instruction[0], b=greaterzero, out=isgreaterzero);
 
     Or(a=islesszero, b=isequelzero, out=temp);
     Or(a=temp, b=isgreaterzero, out=isjump);
-    Not(in=isjump, out=pcplusone);
+    Not(in=isjump, out=pcplus);
+
+    // don't load new address to pc when it's a A insstruction
+    Mux(a=false, b=isjump, sel=instruction[15], out=loadpc);
+    Mux(a=true, b=pcplus, sel=instruction[15], out=pcplusone);
 
     // Determine perform PC + 1 or load a new address to PC
-    PC(in=AregOutToALU, load=isjump, inc=pcplusone, reset=reset, out[0..14]=pc);
+    PC(in=AregOutToALU, load=loadpc, inc=pcplusone, reset=reset, out[0..14]=pc);
 }
