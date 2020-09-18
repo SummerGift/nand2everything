@@ -61,17 +61,20 @@ CHIP CPU {
         ny=instruction[8], f=instruction[7], no=instruction[6], 
         out=outMtoAorD, out=outM, zr=equelzero, ng=lesszero);
 
-    Nand(a=equelzero, b=lesszero, out=greaterzero);
+    Not(in=equelzero, out=Notequelzero);
+    Not(in=lesszero, out=Notlesszero);
+    And(a=Notlesszero, b=Notequelzero, out=greaterthanzero);
 
     // determine if need to write result to memory
     Mux(a=false, b=instruction[3], sel=instruction[15], out=writeM);
 
     And(a=instruction[2], b=lesszero, out=islesszero);
     And(a=instruction[1], b=equelzero, out=isequelzero);
-    And(a=instruction[0], b=greaterzero, out=isgreaterzero);
+    And(a=instruction[0], b=greaterthanzero, out=isgreaterzero);
 
     Or(a=islesszero, b=isequelzero, out=temp);
     Or(a=temp, b=isgreaterzero, out=isjump);
+
     Not(in=isjump, out=pcplus);
 
     // don't load new address to pc when it's a A insstruction
