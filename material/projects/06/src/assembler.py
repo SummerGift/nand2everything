@@ -2,7 +2,7 @@ import os
 import sys
 
 
-def read_asm_file(file):
+def handle_white_space(file):
     with open(file) as f:
         list_data = list(f)
 
@@ -17,11 +17,16 @@ def read_asm_file(file):
 
         new_list.append(line)
 
-    print(new_list)
+    file_dirname = os.path.dirname(file)
+    filename = os.path.basename(file)
+    new_filename = filename + ".nowhitespace"
+    output_file = os.path.join(file_dirname, new_filename)
 
-    with open("without_whitespace.asm") as f:
+    with open(output_file, 'w') as f:
         for line in new_list:
             f.write(line)
+
+    return new_list
 
 
 def main():
@@ -30,10 +35,11 @@ def main():
         print("Useage: python assembler xxx.asm.")
         return
 
-    read_asm_file(sys.argv[1])
+    # get arg from command line
+    asm_file = sys.argv[1]
+    handle_white_space(asm_file)
 
     return
-
 
 
 if __name__ == "__main__":
