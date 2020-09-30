@@ -7,21 +7,87 @@ class Parser:
 
     def __init__(self, file_pathname):
         self.pathname = file_pathname
-        self.command_line_list = []
 
-    def handle_white_space(self):
+    @staticmethod
+    def code_cleanup(self, list_data):
+        """handle useless characters in source code"""
+
+        command_line_list = []
+        for line in list_data:
+            newline = line[:-1].replace(" ", "")
+
+            if newline == "":
+                continue
+            if newline.startswith("//"):
+                continue
+            if newline.startswith("\n"):
+                continue
+            if newline.find("//") != -1:
+                newline = newline[:newline.find("//")]
+
+            command_line_list.append(newline)
+
+        return command_line_list
+
+    @staticmethod
+    def handle_labels(self, command_line_list):
+        label_dict = {
+            "SP": "0",
+            "LCL": "1",
+            "ARG": "2",
+            "THIS": "3",
+            "THAT": "4",
+            "R0": "0",
+            "R1": "1",
+            "R2": "2",
+            "R3": "3",
+            "R4": "4",
+            "R5": "5",
+            "R6": "6",
+            "R7": "7",
+            "R8": "8",
+            "R9": "9",
+            "R10": "10",
+            "R11": "11",
+            "R12": "12",
+            "R13": "13",
+            "14": "14",
+            "15": "15",
+            "SCREEN": "16384",
+            "KBD": "24576"
+        }
+
+        new_commandline = []
+        label_dict = {}
+
+        for line in command_line_list:
+            if line.find("(") != -1:
+                print(line)
+                print(command_line_list.index(line))
+
+        # return
+
+        for line in command_line_list:
+            if line.startswith("@"):
+                pre_defined_label = line[1:]
+                if pre_defined_label in label_dict:
+                    line = line.replace(pre_defined_label, label_dict[pre_defined_label])
+
+            print(line)
+            new_commandline.append(line)
+
+        return new_commandline
+
+    @staticmethod
+    def handle_code_symbols(self, command_line_list):
+        self.handle_labels(self, command_line_list)
+
+    def code_pre_processing(self):
         with open(self.pathname) as f:
             list_data = list(f)
 
-        for line in list_data:
-            if line.startswith(" "):
-                continue
-            if line.startswith("//"):
-                continue
-            if line.startswith("\n"):
-                continue
-
-            self.command_line_list.append(line)
+        after_cleanup = self.code_cleanup(self, list_data)
+        self.handle_code_symbols(self, after_cleanup)
 
     @staticmethod
     def get_command_type(single_cmd):
@@ -144,8 +210,6 @@ class Parser:
         return binary_command
 
     def asm_line_translate(self, command_line):
-        command_line = command_line[:-1]
-
         if self.get_command_type(command_line) == "COMMAND_A":
             return self.handle_a_command(command_line)
 
@@ -153,7 +217,9 @@ class Parser:
             return self.handle_c_command(command_line)
 
     def asm_file_translate(self):
-        self.handle_white_space()
+        self.code_pre_processing()
+
+        return
 
         binary_list = []
         for line in self.command_line_list:
@@ -170,11 +236,14 @@ def main():
     # asm_file = sys.argv[1]
     # asm_file = "/Users/mac/work/nand2everything/material/projects/06/add/Add.asm"
     # asm_file = "/Users/mac/work/nand2everything/material/projects/06/max/MaxL.asm"
+    asm_file = "/Users/mac/work/nand2everything/material/projects/06/max/Max.asm"
     # asm_file = "/Users/mac/work/nand2everything/material/projects/06/pong/PongL.asm"
-    asm_file = "/Users/mac/work/nand2everything/material/projects/06/rect/RectL.asm"
+    # asm_file = "/Users/mac/work/nand2everything/material/projects/06/rect/RectL.asm"
 
     parser = Parser(asm_file)
     binary_code = parser.asm_file_translate()
+
+    return
 
     file_dirname = os.path.dirname(asm_file)
     filename = os.path.basename(asm_file)
