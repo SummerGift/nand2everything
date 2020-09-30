@@ -31,7 +31,7 @@ class Parser:
 
     @staticmethod
     def handle_labels(self, command_line_list):
-        label_dict = {
+        pre_defined_label_dict = {
             "SP": "0",
             "LCL": "1",
             "ARG": "2",
@@ -51,43 +51,70 @@ class Parser:
             "R11": "11",
             "R12": "12",
             "R13": "13",
-            "14": "14",
-            "15": "15",
+            "R14": "14",
+            "R15": "15",
             "SCREEN": "16384",
             "KBD": "24576"
         }
 
+
+        code_label_dict = {}
         new_commandline = []
-        label_dict = {}
-
+        line_index = 0
         for line in command_line_list:
-            if line.find("(") != -1:
-                print(line)
-                print(command_line_list.index(line))
+            if line.find("(") == -1:
+                line_index += 1
+            else:
+                code_label_dict[str(line[1:-1])] = str(line_index)
+                continue
 
-        # return
-
-        for line in command_line_list:
-            if line.startswith("@"):
-                pre_defined_label = line[1:]
-                if pre_defined_label in label_dict:
-                    line = line.replace(pre_defined_label, label_dict[pre_defined_label])
-
-            print(line)
             new_commandline.append(line)
 
-        return new_commandline
+        symbol_label_dict = {}
+        symbol_index = 16
+        for line in command_line_list:
+            if line.find("(") == -1 and line.find("@") != -1:
+                line = line[1:]
+                if line not in pre_defined_label_dict and line not in code_label_dict:
+                    if not line[0].isdigit():
+                        if str(line) not in symbol_label_dict:
+                            symbol_label_dict[str(line)] = str(symbol_index)
+                            symbol_index += 1
+
+        print(symbol_label_dict)
+
+        command_line_without_label_list = []
+        for line in new_commandline:
+            if line.startswith("@"):
+                pre_defined_label = line[1:]
+                if pre_defined_label in pre_defined_label_dict:
+                    line = line.replace(pre_defined_label, pre_defined_label_dict[pre_defined_label])
+                if pre_defined_label in code_label_dict:
+                    line = line.replace(pre_defined_label, code_label_dict[pre_defined_label])
+                if pre_defined_label in symbol_label_dict:
+                    line = line.replace(pre_defined_label, symbol_label_dict[pre_defined_label])
+
+            command_line_without_label_list.append(line)
+
+        return command_line_without_label_list
 
     @staticmethod
     def handle_code_symbols(self, command_line_list):
-        self.handle_labels(self, command_line_list)
+        code_lines = self.handle_labels(self, command_line_list)
+
+        # exit(0)
+        for line in code_lines:
+            print(line)
+
+        # exit(0)
+        return code_lines
 
     def code_pre_processing(self):
         with open(self.pathname) as f:
             list_data = list(f)
 
         after_cleanup = self.code_cleanup(self, list_data)
-        self.handle_code_symbols(self, after_cleanup)
+        return self.handle_code_symbols(self, after_cleanup)
 
     @staticmethod
     def get_command_type(single_cmd):
@@ -103,6 +130,8 @@ class Parser:
         :return: binary command
         """
         prefix = "0"
+
+        print(command_line[1:])
         binary_addr = bin(int(command_line[1:]))[2:]
 
         binary_len = len(binary_addr)
@@ -120,8 +149,6 @@ class Parser:
 
         if command_line.find(";") != -1:
             command = command_line[:command_line.find(";")]
-
-        print("comp str:", command)
 
         dest_command_dict = {
             "0": "0101010",
@@ -163,7 +190,6 @@ class Parser:
             return "000"
         else:
             command = command_line[:command_line.find("=")]
-            print("dest command", command)
 
             dest_command_dict = {
                 "M": "001",
@@ -183,7 +209,6 @@ class Parser:
             return "000"
         else:
             command = command_line[command_line.find(";") + 1:]
-            print("jump COMMAND: ", command)
 
             jump_command_dict = {
                 "JGT": "001",
@@ -217,12 +242,10 @@ class Parser:
             return self.handle_c_command(command_line)
 
     def asm_file_translate(self):
-        self.code_pre_processing()
-
-        return
+        command_lines = self.code_pre_processing()
 
         binary_list = []
-        for line in self.command_line_list:
+        for line in command_lines:
             binary_list.append(self.asm_line_translate(line))
         return binary_list
 
@@ -235,26 +258,26 @@ def main():
     # get arg from command line
     # asm_file = sys.argv[1]
     # asm_file = "/Users/mac/work/nand2everything/material/projects/06/add/Add.asm"
+    asm_file = r"G:\working_on\nand2everything\material\projects\06\add\Add.asm"
     # asm_file = "/Users/mac/work/nand2everything/material/projects/06/max/MaxL.asm"
-    asm_file = "/Users/mac/work/nand2everything/material/projects/06/max/Max.asm"
+    # asm_file = "/Users/mac/work/nand2everything/material/projects/06/max/Max.asm"
+    # asm_file = r"G:\working_on\nand2everything\material\projects\06\max\Max.asm"
     # asm_file = "/Users/mac/work/nand2everything/material/projects/06/pong/PongL.asm"
+    # asm_file = r"G:\working_on\nand2everything\material\projects\06\pong\Pong.asm"
     # asm_file = "/Users/mac/work/nand2everything/material/projects/06/rect/RectL.asm"
+    # asm_file = r"G:\working_on\nand2everything\material\projects\06\rect\Rect.asm"
 
     parser = Parser(asm_file)
     binary_code = parser.asm_file_translate()
 
-    return
-
-    file_dirname = os.path.dirname(asm_file)
+    file_dir = os.path.dirname(asm_file)
     filename = os.path.basename(asm_file)
     new_filename = filename + "_summer.hack"
-    output_file = os.path.join(file_dirname, new_filename)
+    output_file = os.path.join(file_dir, new_filename)
 
     with open(output_file, 'w') as f:
         for line in binary_code:
             f.write(line + "\n")
-
-    print(binary_code)
 
     return True
 
