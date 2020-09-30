@@ -57,7 +57,6 @@ class Parser:
             "KBD": "24576"
         }
 
-
         code_label_dict = {}
         new_commandline = []
         line_index = 0
@@ -81,8 +80,6 @@ class Parser:
                             symbol_label_dict[str(line)] = str(symbol_index)
                             symbol_index += 1
 
-        print(symbol_label_dict)
-
         command_line_without_label_list = []
         for line in new_commandline:
             if line.startswith("@"):
@@ -101,12 +98,6 @@ class Parser:
     @staticmethod
     def handle_code_symbols(self, command_line_list):
         code_lines = self.handle_labels(self, command_line_list)
-
-        # exit(0)
-        for line in code_lines:
-            print(line)
-
-        # exit(0)
         return code_lines
 
     def code_pre_processing(self):
@@ -130,11 +121,9 @@ class Parser:
         :return: binary command
         """
         prefix = "0"
-
-        print(command_line[1:])
         binary_addr = bin(int(command_line[1:]))[2:]
-
         binary_len = len(binary_addr)
+
         if binary_len < 15:
             binary_addr = (15 - binary_len) * "0" + binary_addr
 
@@ -269,11 +258,7 @@ def main():
 
     parser = Parser(asm_file)
     binary_code = parser.asm_file_translate()
-
-    file_dir = os.path.dirname(asm_file)
-    filename = os.path.basename(asm_file)
-    new_filename = filename + "_summer.hack"
-    output_file = os.path.join(file_dir, new_filename)
+    output_file = os.path.join(os.path.dirname(asm_file), os.path.basename(asm_file) + "_summer.hack")
 
     with open(output_file, 'w') as f:
         for line in binary_code:
