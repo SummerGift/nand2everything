@@ -37,8 +37,7 @@
     M=D
 
     @times
-    M=M-1
-    D=M
+    MD=M-1
     @LOOP
     D;JNE
 

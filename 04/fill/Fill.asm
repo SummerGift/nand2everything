@@ -19,7 +19,7 @@
     D;JNE
 
     @TURNCLEAR
-    0;JMP
+    D;JEQ
 
 (TURNBLACK)
     @SCREEN
@@ -36,7 +36,7 @@
     M=0
 
 (DOBLACK_LOOP)
-    // if i == n, goto END
+    // if i == n, then return to start
     @i
     D=M
     @n
@@ -72,7 +72,7 @@
     M=0
 
 (DOCLEAR_LOOP)
-    // if i == n, goto END
+    // if i == n, then return to start
     @i
     D=M
     @n
