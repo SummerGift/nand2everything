@@ -6,36 +6,58 @@ import java.io.IOException;
 
 public class Parser {
 
-    String name;
+    String file;
+    String curCommand = null;
+    BufferedReader reader;
 
-    public Parser(String name){
-        this.name = name;
+    public Parser(String file){
+        this.file = file;
      }
 
-    public void hello(){
-        System.out.println(this.name);
+    public boolean hasMoreCommands(){
+        try {
+            this.curCommand = this.reader.readLine();
+		} catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        if (this.curCommand != null){
+            return true;
+        }else{
+            return false;
+        }
     }
 
-    public void readFile(String file){
+    public String advance(){
+        return this.curCommand;
+    }
+
+    public void readFile(){
         System.out.println(file);
-        BufferedReader reader;
+        
 		try {
-			reader = new BufferedReader(new FileReader(file));
-			String line = reader.readLine();
-			while (line != null) {
-				System.out.println(line);
-				// read next line
-				line = reader.readLine();
-			}
-			reader.close();
+			this.reader = new BufferedReader(new FileReader(this.file));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
     }
 
+    public void closeFile(){
+        try {
+            this.reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) {
-        Parser myParser = new Parser("hello world");
-        myParser.hello();
-        myParser.readFile("../MemoryAccess/BasicTest/BasicTest.vm");
+        Parser myParser = new Parser("../MemoryAccess/BasicTest/BasicTest.vm");
+        myParser.readFile();
+
+        while(myParser.hasMoreCommands()){
+            System.out.println(myParser.advance());
+        }
+
+        myParser.closeFile();
     }
 }
