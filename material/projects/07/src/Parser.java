@@ -14,6 +14,19 @@ public class Parser {
         this.file = file;
      }
 
+    enum commandTypeTranslator
+    {
+        C_ARITHMETIC, 
+        C_PUSH, 
+        C_POP,
+        C_LABLE,
+        C_GOTO,
+        C_IF,
+        C_FUNCTION,
+        C_RETURN,
+        C_CALL;
+    }
+
     public boolean hasMoreCommands(){
         try {
             this.curCommand = this.reader.readLine();
@@ -29,12 +42,42 @@ public class Parser {
     }
 
     public String advance(){
+
+        if(this.curCommand.startsWith("//")){
+            return null;
+        }
+
+        if(this.curCommand.equals("")){
+            return null;
+        }
+
         return this.curCommand;
     }
 
-    public void readFile(){
-        System.out.println(file);
+    public commandTypeTranslator commandType(String command){
+
+        String firstCommand = null;
         
+        for (String retval: command.split(" ")){
+            firstCommand = retval;
+            break;
+        }
+
+        if (firstCommand.equals("push")){
+            return commandTypeTranslator.C_PUSH;
+        }
+
+        if (firstCommand.equals("pop")){
+            return commandTypeTranslator.C_POP;
+        }
+        
+        if (firstCommand.equals("add") || firstCommand.equals("sub") ){
+            return commandTypeTranslator.C_ARITHMETIC;
+        }
+        return null;
+    }
+
+    public void readFile(){
 		try {
 			this.reader = new BufferedReader(new FileReader(this.file));
 		} catch (IOException e) {
@@ -55,7 +98,13 @@ public class Parser {
         myParser.readFile();
 
         while(myParser.hasMoreCommands()){
-            System.out.println(myParser.advance());
+            String curCommand = myParser.advance();
+            if (curCommand != null){
+                String readCommand = myParser.advance();
+                System.out.println(readCommand);
+                commandTypeTranslator commandType = myParser.commandType(readCommand);
+                System.out.println(commandType);
+            }
         }
 
         myParser.closeFile();
