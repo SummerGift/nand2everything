@@ -1,7 +1,45 @@
-package com.journaldev.readfileslinebyline;
-
 import java.io.*;
 import java.util.Arrays;
+
+public class VMTranslator {
+
+  public static void main(String[] args) {
+    Parser myParser = new Parser(
+      "/Users/mac/work/nand2everything/material/projects/07/MemoryAccess/BasicTest/BasicTest.vm"
+    );
+    myParser.readFile();
+
+    while (myParser.hasMoreCommands()) {
+      String readCommand = myParser.advance();
+      System.out.println(readCommand);
+      commandTypeTranslator commandType = myParser.commandType(readCommand);
+      System.out.println(commandType);
+      String arg1 = myParser.arg1(readCommand, commandType);
+      if (arg1 != null) {
+        System.out.println(arg1);
+      }
+      String arg2 = myParser.arg2(readCommand, commandType);
+      if (arg2 != null) {
+        System.out.println(arg2);
+      }
+    }
+  }
+}
+
+public class CodeWriter {}
+
+enum commandTypeTranslator {
+  C_ARITHMETIC,
+  C_PUSH,
+  C_POP,
+  C_LABLE,
+  C_GOTO,
+  C_IF,
+  C_FUNCTION,
+  C_RETURN,
+  C_CALL,
+  C_NULL,
+}
 
 public class Parser {
   String file;
@@ -12,20 +50,7 @@ public class Parser {
     this.file = file;
   }
 
-  enum commandTypeTranslator {
-    C_ARITHMETIC,
-    C_PUSH,
-    C_POP,
-    C_LABLE,
-    C_GOTO,
-    C_IF,
-    C_FUNCTION,
-    C_RETURN,
-    C_CALL,
-    C_NULL,
-  }
-
-  String[] cArithmetic = {
+  public String[] cArithmetic = {
     "add",
     "sub",
     "neg",
@@ -158,26 +183,6 @@ public class Parser {
       this.reader = new BufferedReader(inputString);
     } catch (IOException e) {
       e.printStackTrace();
-    }
-  }
-
-  public static void main(String[] args) {
-    Parser myParser = new Parser("../MemoryAccess/BasicTest/BasicTest.vm");
-    myParser.readFile();
-    while (myParser.hasMoreCommands()) {
-      String curCommand = myParser.advance();
-      String readCommand = myParser.advance();
-      System.out.println(readCommand);
-      commandTypeTranslator commandType = myParser.commandType(readCommand);
-      System.out.println(commandType);
-      String arg1 = myParser.arg1(readCommand, commandType);
-      if (arg1 != null) {
-        System.out.println(arg1);
-      }
-      String arg2 = myParser.arg2(readCommand, commandType);
-      if (arg2 != null) {
-        System.out.println(arg2);
-      }
     }
   }
 }
