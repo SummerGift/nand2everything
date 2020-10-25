@@ -131,10 +131,14 @@ public class CodeWriter {
           this.writer.append("@SP" + "\n");
           this.writer.append("A=M" + "\n");
           this.writer.append("M=0" + "\n");
+          this.writer.append("@END_NOT_EQ_" + this.codeLineCount + "\n");
+          this.writer.append("0;JMP" + "\n");
           this.writer.append("(END_EQ_" + this.codeLineCount + ")\n");
           this.writer.append("@SP" + "\n");
           this.writer.append("A=M" + "\n");
           this.writer.append("M=-1" + "\n");
+          this.writer.append("(END_NOT_EQ_" + this.codeLineCount + ")\n");
+
           deepStack();
           break;
         case "gt":
@@ -152,10 +156,13 @@ public class CodeWriter {
           this.writer.append("@SP" + "\n");
           this.writer.append("A=M" + "\n");
           this.writer.append("M=0" + "\n");
+          this.writer.append("@END_NOT_GT_" + this.codeLineCount + "\n");
+          this.writer.append("0;JMP" + "\n");
           this.writer.append("(END_GT_" + this.codeLineCount + ")\n");
           this.writer.append("@SP" + "\n");
           this.writer.append("A=M" + "\n");
           this.writer.append("M=-1" + "\n");
+          this.writer.append("(END_NOT_GT_" + this.codeLineCount + ")\n");
           deepStack();
           break;
         case "lt":
@@ -173,10 +180,13 @@ public class CodeWriter {
           this.writer.append("@SP" + "\n");
           this.writer.append("A=M" + "\n");
           this.writer.append("M=0" + "\n");
+          this.writer.append("@END_NOT_LT_" + this.codeLineCount + "\n");
+          this.writer.append("0;JMP" + "\n");
           this.writer.append("(END_LT_" + this.codeLineCount + ")\n");
           this.writer.append("@SP" + "\n");
           this.writer.append("A=M" + "\n");
           this.writer.append("M=-1" + "\n");
+          this.writer.append("(END_NOT_LT_" + this.codeLineCount + ")\n");
           deepStack();
           break;
         case "and":
