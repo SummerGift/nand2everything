@@ -5,7 +5,7 @@ public class VMTranslator {
 
   public static void main(String[] args) {
     Parser myParser = new Parser(
-      "/Users/mac/work/nand2everything/material/projects/07/StackArithmetic/SimpleAdd/SimpleAdd.vm"
+      "/Users/mac/work/nand2everything/material/projects/07/StackArithmetic/StackTest/StackTest.vm"
     );
     myParser.readFile();
 
@@ -13,6 +13,8 @@ public class VMTranslator {
 
     while (myParser.hasMoreCommands()) {
       String readCommand = myParser.advance();
+
+      myCodeWriter.addCodeLine();
 
       commandTypeTranslator commandType = myParser.commandType(readCommand);
 
@@ -41,6 +43,7 @@ public class CodeWriter {
   String outPutFile;
   OutputStreamWriter writer;
   FileOutputStream fop;
+  public int codeLineCount = 0;
 
   public CodeWriter(String outFile) {
     this.outPutFile = this.setFileName(outFile);
@@ -55,6 +58,10 @@ public class CodeWriter {
 
   public String setFileName(String outFile) {
     return outFile.replace(".vm", ".asm");
+  }
+
+  public void addCodeLine() {
+    this.codeLineCount += 1;
   }
 
   public void deepStack() {
@@ -79,16 +86,130 @@ public class CodeWriter {
     System.out.println(arg1);
 
     try {
-      if (arg1.equals("add")) {
-        backStack();
-        this.writer.append("@SP" + "\n");
-        this.writer.append("A=M" + "\n");
-        this.writer.append("D=M" + "\n");
-        backStack();
-        this.writer.append("@SP" + "\n");
-        this.writer.append("A=M" + "\n");
-        this.writer.append("M=M+D" + "\n");
-        deepStack();
+      switch (arg1) {
+        case "add":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=M+D" + "\n");
+          deepStack();
+          break;
+        case "sub":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=M-D" + "\n");
+          deepStack();
+          break;
+        case "neg":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=-M" + "\n");
+          deepStack();
+          break;
+        case "eq":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M-D" + "\n");
+          // Determine whether M is equal to D
+          this.writer.append("@END_EQ_" + this.codeLineCount + "\n");
+          this.writer.append("D;JEQ" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=0" + "\n");
+          this.writer.append("(END_EQ_" + this.codeLineCount + ")\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=-1" + "\n");
+          deepStack();
+          break;
+        case "gt":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M-D" + "\n");
+          // Determine whether M is great than D
+          this.writer.append("@END_GT_" + this.codeLineCount + "\n");
+          this.writer.append("D;JGT" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=0" + "\n");
+          this.writer.append("(END_GT_" + this.codeLineCount + ")\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=-1" + "\n");
+          deepStack();
+          break;
+        case "lt":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M-D" + "\n");
+          // Determine whether M is Less than D
+          this.writer.append("@END_LT_" + this.codeLineCount + "\n");
+          this.writer.append("D;JLT" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=0" + "\n");
+          this.writer.append("(END_LT_" + this.codeLineCount + ")\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=-1" + "\n");
+          deepStack();
+          break;
+        case "and":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=M&D" + "\n");
+          deepStack();
+          break;
+        case "or":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=M|D" + "\n");
+          deepStack();
+          break;
+        case "not":
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=!M" + "\n");
+          deepStack();
+          break;
+        default:
+          System.out.println("undefined arithetic command!");
       }
     } catch (IOException e) {
       e.printStackTrace();
