@@ -5,7 +5,7 @@ public class VMTranslator {
 
   public static void main(String[] args) {
     Parser myParser = new Parser(
-      "/Users/mac/work/nand2everything/material/projects/07/MemoryAccess/BasicTest/BasicTest.vm"
+      "/Users/mac/work/nand2everything/material/projects/07/StackArithmetic/SimpleAdd/SimpleAdd.vm"
     );
     myParser.readFile();
 
@@ -17,16 +17,16 @@ public class VMTranslator {
       commandTypeTranslator commandType = myParser.commandType(readCommand);
 
       String arg1 = myParser.arg1(readCommand, commandType);
-      if (commandType == commandTypeTranslator.C_ARITHMETIC){
+      if (commandType == commandTypeTranslator.C_ARITHMETIC) {
         myCodeWriter.writeArithetic(arg1);
       }
 
-      if (commandType == commandTypeTranslator.C_PUSH){
+      if (commandType == commandTypeTranslator.C_PUSH) {
         String arg2 = myParser.arg2(readCommand, commandType);
         myCodeWriter.writePush(arg1, arg2);
       }
 
-      if (commandType == commandTypeTranslator.C_POP){
+      if (commandType == commandTypeTranslator.C_POP) {
         String arg2 = myParser.arg2(readCommand, commandType);
         myCodeWriter.writePop(arg1, arg2);
       }
@@ -57,28 +57,63 @@ public class CodeWriter {
     return outFile.replace(".vm", ".asm");
   }
 
-  public void writeArithetic(String command) {
+  public void deepStack() {
     try {
-      this.writer.append("arith");
-      this.writer.append("\r\n");
+      this.writer.append("@SP" + "\n");
+      this.writer.append("M=M+1" + "\n");
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  public void writePush(String arg1, String age2) {
+  public void backStack() {
     try {
-      this.writer.append("push");
-      this.writer.append("\r\n");
+      this.writer.append("@SP" + "\n");
+      this.writer.append("M=M-1" + "\n");
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  public void writePop(String arg1, String age2) {
+  public void writeArithetic(String arg1) {
+    System.out.println(arg1);
+
+    try {
+      if (arg1.equals("add")) {
+        backStack();
+        this.writer.append("@SP" + "\n");
+        this.writer.append("A=M" + "\n");
+        this.writer.append("D=M" + "\n");
+        backStack();
+        this.writer.append("@SP" + "\n");
+        this.writer.append("A=M" + "\n");
+        this.writer.append("M=M+D" + "\n");
+        deepStack();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void writePush(String arg1, String arg2) {
+    try {
+      if (arg1.equals("constant")) {
+        this.writer.append("@" + arg2 + "\n");
+        this.writer.append("D=A" + "\n");
+      }
+      this.writer.append("@SP" + "\n");
+      this.writer.append("A=M" + "\n");
+      this.writer.append("M=D" + "\n");
+      deepStack();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void writePop(String arg1, String arg2) {
     try {
       this.writer.append("pop");
-      this.writer.append("\r\n");
+      this.writer.append("\n");
     } catch (IOException e) {
       e.printStackTrace();
     }
