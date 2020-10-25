@@ -9,24 +9,90 @@ public class VMTranslator {
     );
     myParser.readFile();
 
+    CodeWriter myCodeWriter = new CodeWriter(myParser.getFileName());
+
     while (myParser.hasMoreCommands()) {
       String readCommand = myParser.advance();
-      System.out.println(readCommand);
+
       commandTypeTranslator commandType = myParser.commandType(readCommand);
-      System.out.println(commandType);
+
       String arg1 = myParser.arg1(readCommand, commandType);
-      if (arg1 != null) {
-        System.out.println(arg1);
+      if (commandType == commandTypeTranslator.C_ARITHMETIC){
+        myCodeWriter.writeArithetic(arg1);
       }
-      String arg2 = myParser.arg2(readCommand, commandType);
-      if (arg2 != null) {
-        System.out.println(arg2);
+
+      if (commandType == commandTypeTranslator.C_PUSH){
+        String arg2 = myParser.arg2(readCommand, commandType);
+        myCodeWriter.writePush(arg1, arg2);
+      }
+
+      if (commandType == commandTypeTranslator.C_POP){
+        String arg2 = myParser.arg2(readCommand, commandType);
+        myCodeWriter.writePop(arg1, arg2);
       }
     }
+
+    myCodeWriter.close();
+    myParser.close();
   }
 }
 
-public class CodeWriter {}
+public class CodeWriter {
+  String outPutFile;
+  OutputStreamWriter writer;
+  FileOutputStream fop;
+
+  public CodeWriter(String outFile) {
+    this.outPutFile = this.setFileName(outFile);
+    try {
+      File f = new File(this.outPutFile);
+      this.fop = new FileOutputStream(f);
+      this.writer = new OutputStreamWriter(fop, "UTF-8");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public String setFileName(String outFile) {
+    return outFile.replace(".vm", ".asm");
+  }
+
+  public void writeArithetic(String command) {
+    try {
+      this.writer.append("arith");
+      this.writer.append("\r\n");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void writePush(String arg1, String age2) {
+    try {
+      this.writer.append("push");
+      this.writer.append("\r\n");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void writePop(String arg1, String age2) {
+    try {
+      this.writer.append("pop");
+      this.writer.append("\r\n");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void close() {
+    try {
+      this.writer.close();
+      this.fop.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
 
 enum commandTypeTranslator {
   C_ARITHMETIC,
@@ -175,12 +241,24 @@ public class Parser {
     is.close();
   }
 
+  public String getFileName() {
+    return this.file;
+  }
+
   public void readFile() {
     try {
       StringBuffer sb = new StringBuffer();
       readToBuffer(sb, this.file);
       Reader inputString = new StringReader(sb.toString());
       this.reader = new BufferedReader(inputString);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void close() {
+    try {
+      this.reader.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
