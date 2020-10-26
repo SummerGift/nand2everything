@@ -5,7 +5,7 @@ public class VMTranslator {
 
   public static void main(String[] args) {
     Parser myParser = new Parser(
-      "/Users/mac/work/nand2everything/material/projects/07/MemoryAccess/PointerTest/PointerTest.vm"
+      "/Users/mac/work/nand2everything/material/projects/07/MemoryAccess/StaticTest/StaticTest.vm"
     );
     myParser.readFile();
 
@@ -41,6 +41,7 @@ public class VMTranslator {
 
 public class CodeWriter {
   String outPutFile;
+  String fileName;
   OutputStreamWriter writer;
   FileOutputStream fop;
   public int codeLineCount = 0;
@@ -57,6 +58,9 @@ public class CodeWriter {
   }
 
   public String setFileName(String outFile) {
+    File tempFile = new File(outFile.trim());
+    this.fileName = tempFile.getName();
+
     return outFile.replace(".vm", ".asm");
   }
 
@@ -304,6 +308,15 @@ public class CodeWriter {
           this.writer.append("M=D" + "\n");
           deepStack();
           break;
+        case "static":
+          String staticName = this.fileName.replace(".vm", "");
+          this.writer.append("@" + staticName + "." + arg2 + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          deepStack();
+          break;
         default:
           System.out.println("undefined push argument!");
       }
@@ -410,8 +423,17 @@ public class CodeWriter {
           this.writer.append("A=M" + "\n");
           this.writer.append("M=D" + "\n");
           break;
+        case "static":
+          String staticName = this.fileName.replace(".vm", "");
+          backStack();
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@" + staticName + "." + arg2 + "\n");
+          this.writer.append("M=D" + "\n");
+          break;
         default:
-          System.out.println("undefined push argument!");
+          System.out.println("undefined pop argument!");
       }
     } catch (IOException e) {
       e.printStackTrace();
