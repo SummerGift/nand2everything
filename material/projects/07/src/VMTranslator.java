@@ -5,7 +5,7 @@ public class VMTranslator {
 
   public static void main(String[] args) {
     Parser myParser = new Parser(
-      "/Users/mac/work/nand2everything/material/projects/07/StackArithmetic/StackTest/StackTest.vm"
+      "/Users/mac/work/nand2everything/material/projects/07/MemoryAccess/BasicTest/BasicTest.vm"
     );
     myParser.readFile();
 
@@ -227,24 +227,166 @@ public class CodeWriter {
   }
 
   public void writePush(String arg1, String arg2) {
+    System.out.println("push " + arg1);
     try {
-      if (arg1.equals("constant")) {
-        this.writer.append("@" + arg2 + "\n");
-        this.writer.append("D=A" + "\n");
+      switch (arg1) {
+        case "constant":
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          deepStack();
+          break;
+        case "local":
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@LCL" + "\n");
+          this.writer.append("A=D+M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          deepStack();
+          break;
+        case "argument":
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@ARG" + "\n");
+          this.writer.append("A=D+M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          deepStack();
+          break;
+        case "this":
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@THIS" + "\n");
+          this.writer.append("A=D+M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          deepStack();
+          break;
+        case "that":
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@THAT" + "\n");
+          this.writer.append("A=D+M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          deepStack();
+          break;
+        case "temp":
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@5" + "\n");
+          this.writer.append("A=D+A" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          deepStack();
+          break;
+        default:
+          System.out.println("undefined push argument!");
       }
-      this.writer.append("@SP" + "\n");
-      this.writer.append("A=M" + "\n");
-      this.writer.append("M=D" + "\n");
-      deepStack();
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
   public void writePop(String arg1, String arg2) {
+    System.out.println("pop " + arg1);
     try {
-      this.writer.append("pop");
-      this.writer.append("\n");
+      switch (arg1) {
+        case "local":
+          backStack();
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@LCL" + "\n");
+          this.writer.append("A=D+M" + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("M=D" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          break;
+        case "argument":
+          backStack();
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@ARG" + "\n");
+          this.writer.append("A=D+M" + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("M=D" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          break;
+        case "this":
+          backStack();
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@THIS" + "\n");
+          this.writer.append("A=D+M" + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("M=D" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          break;
+        case "that":
+          backStack();
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@THAT" + "\n");
+          this.writer.append("A=D+M" + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("M=D" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          break;
+        case "temp":
+          backStack();
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@5" + "\n");
+          this.writer.append("D=D+A" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("M=D" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          break;
+        default:
+          System.out.println("undefined push argument!");
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
