@@ -5,7 +5,7 @@ public class VMTranslator {
 
   public static void main(String[] args) {
     Parser myParser = new Parser(
-      "/Users/mac/work/nand2everything/material/projects/07/MemoryAccess/BasicTest/BasicTest.vm"
+      "/Users/mac/work/nand2everything/material/projects/07/MemoryAccess/PointerTest/PointerTest.vm"
     );
     myParser.readFile();
 
@@ -293,6 +293,17 @@ public class CodeWriter {
           this.writer.append("M=D" + "\n");
           deepStack();
           break;
+        case "pointer":
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@3" + "\n");
+          this.writer.append("A=D+A" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          deepStack();
+          break;
         default:
           System.out.println("undefined push argument!");
       }
@@ -374,6 +385,21 @@ public class CodeWriter {
           this.writer.append("@" + arg2 + "\n");
           this.writer.append("D=A" + "\n");
           this.writer.append("@5" + "\n");
+          this.writer.append("D=D+A" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("M=D" + "\n");
+          this.writer.append("@SP" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("D=M" + "\n");
+          this.writer.append("@R13" + "\n");
+          this.writer.append("A=M" + "\n");
+          this.writer.append("M=D" + "\n");
+          break;
+        case "pointer":
+          backStack();
+          this.writer.append("@" + arg2 + "\n");
+          this.writer.append("D=A" + "\n");
+          this.writer.append("@3" + "\n");
           this.writer.append("D=D+A" + "\n");
           this.writer.append("@R13" + "\n");
           this.writer.append("M=D" + "\n");
