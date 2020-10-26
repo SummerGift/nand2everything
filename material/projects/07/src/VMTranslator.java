@@ -1,41 +1,70 @@
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class VMTranslator {
 
   public static void main(String[] args) {
-    Parser myParser = new Parser(
-      "/Users/mac/work/nand2everything/material/projects/07/MemoryAccess/StaticTest/StaticTest.vm"
-    );
-    myParser.readFile();
+    if (args.length == 0) {
+      System.out.println("\nPlease specific .vm filename or folder!\n");
+      return;
+    }
 
-    CodeWriter myCodeWriter = new CodeWriter(myParser.getFileName());
+    ArrayList<String> vmFiles = new ArrayList<String>();
 
-    while (myParser.hasMoreCommands()) {
-      String readCommand = myParser.advance();
-
-      myCodeWriter.addCodeLine();
-
-      commandTypeTranslator commandType = myParser.commandType(readCommand);
-
-      String arg1 = myParser.arg1(readCommand, commandType);
-      if (commandType == commandTypeTranslator.C_ARITHMETIC) {
-        myCodeWriter.writeArithetic(arg1);
-      }
-
-      if (commandType == commandTypeTranslator.C_PUSH) {
-        String arg2 = myParser.arg2(readCommand, commandType);
-        myCodeWriter.writePush(arg1, arg2);
-      }
-
-      if (commandType == commandTypeTranslator.C_POP) {
-        String arg2 = myParser.arg2(readCommand, commandType);
-        myCodeWriter.writePop(arg1, arg2);
+    File file = new File(args[0]);
+    if (file.isDirectory()) {
+      System.out.println("Path is a folder.\n");
+      File[] fs = file.listFiles();
+      for (File f : fs) {
+        if (!f.isDirectory()) {
+          if (f.getName().endsWith(".vm")) {
+            vmFiles.add(f.toString());
+          }
+        }
       }
     }
 
-    myCodeWriter.close();
-    myParser.close();
+    if (file.isFile()) {
+      System.out.println("Path is a filename.\n");
+      vmFiles.add(args[0]);
+    }
+
+    for (int i = 0; i < vmFiles.size(); i++) {
+      System.out.println(vmFiles.get(i));
+
+      Parser myParser = new Parser(vmFiles.get(i));
+      myParser.readFile();
+      CodeWriter myCodeWriter = new CodeWriter(myParser.getFileName());
+
+      while (myParser.hasMoreCommands()) {
+        String readCommand = myParser.advance();
+
+        myCodeWriter.addCodeLine();
+
+        commandTypeTranslator commandType = myParser.commandType(readCommand);
+
+        String arg1 = myParser.arg1(readCommand, commandType);
+        if (commandType == commandTypeTranslator.C_ARITHMETIC) {
+          myCodeWriter.writeArithetic(arg1);
+        }
+
+        if (commandType == commandTypeTranslator.C_PUSH) {
+          String arg2 = myParser.arg2(readCommand, commandType);
+          myCodeWriter.writePush(arg1, arg2);
+        }
+
+        if (commandType == commandTypeTranslator.C_POP) {
+          String arg2 = myParser.arg2(readCommand, commandType);
+          myCodeWriter.writePop(arg1, arg2);
+        }
+      }
+
+      myCodeWriter.close();
+      myParser.close();
+    }
+
+    return;
   }
 }
 
