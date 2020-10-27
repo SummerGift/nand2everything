@@ -68,7 +68,7 @@ public class VMTranslator {
   }
 }
 
-public class CodeWriter {
+class CodeWriter {
   String outPutFile;
   String fileName;
   OutputStreamWriter writer;
@@ -492,7 +492,7 @@ enum commandTypeTranslator {
   C_NULL,
 }
 
-public class Parser {
+class Parser {
   String file;
   String curCommand = null;
   BufferedReader reader;
