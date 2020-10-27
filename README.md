@@ -14,40 +14,43 @@
 
 目前已经完成项目如下：
 
-### [Project 1](01)
+### [Project 1 Basic Gate Logic](01)
 - [x] 基本逻辑门（And16 Or16 Not16）
 - [x] 多路选择器（MUX16）
 - [x] 分路器（DMUX16）
 
-### [Project 2](02)
+### [Project 2 ALU](02)
 - [x] 半加器（HalfAdder）
 - [x] 全加器（FullAdder）
 - [x] 加法器（Add16）
 - [x] 算数逻辑单元（ALU）
 
-### [Project 3](03)
+### [Project 3 PC And RAM](03)
 - [x] 16 位寄存器（Register）
 - [x] 程序计数器（PC）
 - [x] RAM8 - RAM16K
 
-### [Project 4](04)
+### [Project 4 Machine Language And IO](04)
 - [x] 机器语言（Machine Language）
 - [x] 键盘、显示屏、输入输出（Input/Output）
 
-### [Project 5](05)
+### [Project 5 Computer](05)
 - [x] 存储器（Memory）
 - [x] 中央处理器（CPU）
 - [x] 控制器（Controller）
 - [x] 计算机（Computer）
 
-### [Project 6](06)
-- [x] 汇编器（Assembler）
+### [Project 6 Assembler](06)
+- [x] Assembler
 
 现在已经完成了第一阶段从与非门到一个完整计算机的构建过程，并且为其编写了一个汇编器，这大大地满足了我的好奇心，真是一件振奋人心的事 ：）
 
 ## Second Stage
 
-后续项目准备使用 java 语言继续开发，首先开发 VM，然后开发目标为 VM code 的高级语言编译器，最终为第一阶段的计算机开发一个操作系统。
+From now on, I plan using java to develop the following projects, first to develop the VM, next is a high-level language compiler targeting for VM code, and finally develop a operation system for the first stage computer.  
 
-### [Project 7](07)
-- [ ] VMTranslator Part Ⅰ（Working）
+### [Project 7 VMTranslator](07)
+- [x] StackArithmetic
+- [x] MemoryAccess
+
+I start using Java to develop program since project7, add more fun and challenge to the jouney :) The project7 has been finished now, even the code writting with java is not so elegant，but it still open a new window for me, cool!
