@@ -12,38 +12,38 @@
 
 ## First Stage
 
-目前已经完成项目如下：
+The projects that have been completed are as follows:
 
 ### [Project 1 Basic Gate Logic](01)
-- [x] 基本逻辑门（And16 Or16 Not16）
-- [x] 多路选择器（MUX16）
-- [x] 分路器（DMUX16）
+- [x] And16 Or16 Not16
+- [x] MUX16
+- [x] DMUX16
 
 ### [Project 2 ALU](02)
-- [x] 半加器（HalfAdder）
-- [x] 全加器（FullAdder）
-- [x] 加法器（Add16）
-- [x] 算数逻辑单元（ALU）
+- [x] HalfAdder
+- [x] FullAdder
+- [x] Add16
+- [x] ALU
 
 ### [Project 3 PC And RAM](03)
-- [x] 16 位寄存器（Register）
-- [x] 程序计数器（PC）
+- [x] 16-bit Register
+- [x] Program Counter
 - [x] RAM8 - RAM16K
 
 ### [Project 4 Machine Language And IO](04)
-- [x] 机器语言（Machine Language）
-- [x] 键盘、显示屏、输入输出（Input/Output）
+- [x] Machine Language
+- [x] Input/Output
 
 ### [Project 5 Computer](05)
-- [x] 存储器（Memory）
-- [x] 中央处理器（CPU）
-- [x] 控制器（Controller）
-- [x] 计算机（Computer）
+- [x] Memory
+- [x] CPU
+- [x] Controller
+- [x] Computer
 
 ### [Project 6 Assembler](06)
 - [x] Assembler
 
-现在已经完成了第一阶段从与非门到一个完整计算机的构建过程，并且为其编写了一个汇编器，这大大地满足了我的好奇心，真是一件振奋人心的事 ：）
+Now I have completed the first phase of the construction process from the NAND gate to a complete computer, and wrote an assembler for it, which greatly satisfied my curiosity. It is really exciting :)
 
 ## Second Stage
 
