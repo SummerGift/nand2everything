@@ -14,27 +14,27 @@
 
 The projects that have been completed are as follows:
 
-### [Project 1 Basic Gate Logic](01)
+### [Project 1 Boolean Logic](01)
 - [x] And16 Or16 Not16
 - [x] MUX16
 - [x] DMUX16
 
-### [Project 2 ALU](02)
+### [Project 2 Boolean Arithmetic](02)
 - [x] HalfAdder
 - [x] FullAdder
 - [x] Add16
 - [x] ALU
 
-### [Project 3 PC And RAM](03)
+### [Project 3 Sequential Logic](03)
 - [x] 16-bit Register
 - [x] Program Counter
 - [x] RAM8 - RAM16K
 
-### [Project 4 Machine Language And IO](04)
+### [Project 4 Machine Language](04)
 - [x] Machine Language
 - [x] Input/Output
 
-### [Project 5 Computer](05)
+### [Project 5 Computer Architecture](05)
 - [x] Memory
 - [x] CPU
 - [x] Controller
@@ -49,8 +49,12 @@ Now I have completed the first phase of the construction process from the NAND g
 
 From now on, I plan using java to develop the following projects, first to develop the VM, next is a high-level language compiler targeting for VM code, and finally develop a operation system for the first stage computer.  
 
-### [Project 7 VMTranslator](07)
+### [Project 7 Virtual Machine Ⅰ: Stack Arithemetic](07)
 - [x] StackArithmetic
 - [x] MemoryAccess
 
 I start using Java to develop program since project7, add more fun and challenge to the jouney :) The project7 has been finished now, even the code writting with java is not so elegant，but it still open a new window for me, cool!
+
+### [Project 8 Virtual Machine II: Program Control](08)
+
+This project is about design stack-based machanisms for handling nested subroutine calls of procedural or object-oriented languages.
