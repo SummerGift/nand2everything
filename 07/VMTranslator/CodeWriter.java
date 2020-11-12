@@ -1,5 +1,3 @@
-package src;
-
 import java.io.*;
 
 class CodeWriter {
