@@ -49,12 +49,15 @@ Now I have completed the first phase of the construction process from the NAND g
 
 From now on, I plan using java to develop the following projects, first to develop the VM, next is a high-level language compiler targeting for VM code, and finally develop a operation system for the first stage computer.  
 
-### [Project 7 Virtual Machine Ⅰ: Stack Arithemetic](07)
-- [x] StackArithmetic
-- [x] MemoryAccess
+### [Project 7 VM Ⅰ: Stack Arithemetic](07)
+- [x] Stack Arithmetic
+- [x] Memory Access
 
 I start using Java to develop program since project7, add more fun and challenge to the jouney :) The project7 has been finished now, even the code writting with java is not so elegant，but it still open a new window for me, cool!
 
-### [Project 8 Virtual Machine II: Program Control](08)
+### [Project 8 VM II: Program Control](08)
 
 This project is about design stack-based machanisms for handling nested subroutine calls of procedural or object-oriented languages.
+
+- [ ] Program Flow
+- [ ] Function Calls
