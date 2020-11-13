@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class VMTranslator {
 
@@ -11,7 +10,7 @@ public class VMTranslator {
         // }
         // String pathName = args[0];
 
-        String pathName = "/Users/mac/work/nand2everything/07/MemoryAccess/BasicTest/BasicTest.vm";
+        String pathName = "/Users/mac/work/nand2everything/08/ProgramFlow/BasicLoop/BasicLoop.vm";
 
         File file = new File(pathName);
         ArrayList<String> vmFiles = new ArrayList<String>();
@@ -28,12 +27,12 @@ public class VMTranslator {
         }
 
         if (file.isFile()) {
-            System.out.println("Path is a filename.\n");
+            System.out.println("\nPath is a filename.\n");
             vmFiles.add(pathName);
         }
 
         for (int i = 0; i < vmFiles.size(); i++) {
-            System.out.println(vmFiles.get(i));
+            System.out.println("Path: " + vmFiles.get(i) + "\n");
 
             Parser myParser = new Parser(vmFiles.get(i));
             myParser.readFile();
@@ -47,18 +46,28 @@ public class VMTranslator {
                 commandTypeTranslator commandType = myParser.commandType(readCommand);
 
                 String arg1 = myParser.arg1(readCommand, commandType);
-                if (commandType == commandTypeTranslator.C_ARITHMETIC) {
-                    myCodeWriter.writeArithetic(arg1);
-                }
+                String arg2;
 
-                if (commandType == commandTypeTranslator.C_PUSH) {
-                    String arg2 = myParser.arg2(readCommand, commandType);
-                    myCodeWriter.writePush(arg1, arg2);
-                }
-
-                if (commandType == commandTypeTranslator.C_POP) {
-                    String arg2 = myParser.arg2(readCommand, commandType);
-                    myCodeWriter.writePop(arg1, arg2);
+                switch (commandType) {
+                    case C_ARITHMETIC:
+                        myCodeWriter.writeArithetic(arg1);
+                        break;
+                    case C_PUSH:
+                        arg2 = myParser.arg2(readCommand, commandType);
+                        myCodeWriter.writePush(arg1, arg2);
+                        break;
+                    case C_POP:
+                        arg2 = myParser.arg2(readCommand, commandType);
+                        myCodeWriter.writePop(arg1, arg2);
+                        break;
+                    case C_LABEL:
+                        myCodeWriter.writeLabel(arg1);
+                        break;
+                    case C_IF:
+                        myCodeWriter.writeIf(arg1);
+                        break;
+                    default:
+                        System.out.println("undefined command!");
                 }
             }
 

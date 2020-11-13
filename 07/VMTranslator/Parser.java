@@ -54,14 +54,14 @@ class Parser {
         }
 
         if (firstCommand.equals("label")) {
-            return commandTypeTranslator.C_LABLE;
+            return commandTypeTranslator.C_LABEL;
         }
 
         if (firstCommand.equals("goto")) {
             return commandTypeTranslator.C_GOTO;
         }
 
-        if (firstCommand.equals("if")) {
+        if (firstCommand.equals("if-goto")) {
             return commandTypeTranslator.C_IF;
         }
 
@@ -145,5 +145,5 @@ class Parser {
 }
 
 enum commandTypeTranslator {
-    C_ARITHMETIC, C_PUSH, C_POP, C_LABLE, C_GOTO, C_IF, C_FUNCTION, C_RETURN, C_CALL, C_NULL,
+    C_ARITHMETIC, C_PUSH, C_POP, C_LABEL, C_GOTO, C_IF, C_FUNCTION, C_RETURN, C_CALL, C_NULL,
 }

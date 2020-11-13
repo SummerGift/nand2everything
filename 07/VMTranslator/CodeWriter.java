@@ -401,6 +401,29 @@ class CodeWriter {
         }
     }
 
+    public void writeIf(String arg1) {
+        System.out.println("if-goto " + arg1);
+        try {
+            backStack();
+            this.writer.append("@SP" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@" + arg1 + "\n");
+            this.writer.append("D;JGT" + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeLabel(String arg1) {
+        System.out.println("label " + arg1);
+        try {
+            this.writer.append("(" + arg1 + ")\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void close() {
         try {
             this.writer.close();
