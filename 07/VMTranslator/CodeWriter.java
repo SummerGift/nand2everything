@@ -433,7 +433,7 @@ class CodeWriter {
             e.printStackTrace();
         }
     }
-
+    
     public void writeFunction(String arg1, String arg2) {
         System.out.println("function " + arg1 + " " + arg2);
         try {
@@ -498,8 +498,8 @@ class CodeWriter {
             this.writer.append("@R13" + "\n");
             this.writer.append("D=M" + "\n");
 
-            this.writer.append("D=D-1" + "\n");
-            this.writer.append("D=D-1" + "\n");
+            this.writer.append("@2" + "\n");
+            this.writer.append("D=D-A" + "\n");
             this.writer.append("A=D" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@THIS" + "\n");
@@ -509,9 +509,8 @@ class CodeWriter {
             this.writer.append("@R13" + "\n");
             this.writer.append("D=M" + "\n");
 
-            this.writer.append("D=D-1" + "\n");
-            this.writer.append("D=D-1" + "\n");
-            this.writer.append("D=D-1" + "\n");
+            this.writer.append("@3" + "\n");
+            this.writer.append("D=D-A" + "\n");
             this.writer.append("A=D" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@ARG" + "\n");
@@ -521,10 +520,8 @@ class CodeWriter {
             this.writer.append("@R13" + "\n");
             this.writer.append("D=M" + "\n");
 
-            this.writer.append("D=D-1" + "\n");
-            this.writer.append("D=D-1" + "\n");
-            this.writer.append("D=D-1" + "\n");
-            this.writer.append("D=D-1" + "\n");
+            this.writer.append("@4" + "\n");
+            this.writer.append("D=D-A" + "\n");
             this.writer.append("A=D" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@LCL" + "\n");
