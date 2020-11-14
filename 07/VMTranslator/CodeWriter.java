@@ -6,6 +6,7 @@ class CodeWriter {
     OutputStreamWriter writer;
     FileOutputStream fop;
     public int codeLineCount = 0;
+    public int callCount = 0;
 
     public CodeWriter(String outFile) {
         this.outPutFile = this.setFileName(outFile);
@@ -433,24 +434,24 @@ class CodeWriter {
             e.printStackTrace();
         }
     }
-    
+
     public void writeFunction(String arg1, String arg2) {
         System.out.println("function " + arg1 + " " + arg2);
         try {
             this.writer.append("(" + arg1 + ")\n");
-            for(int i = 0; i < Integer.parseInt(arg2); i++){
-                this.writer.append("@0" + "\n");
-                this.writer.append("D=A" + "\n");
-                this.writer.append("@SP" + "\n");
-                this.writer.append("A=M" + "\n");
+
+            // set 0 to loacl
+            this.writer.append("@0" + "\n");
+            this.writer.append("D=A" + "\n");
+
+            // get address from LCL
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("A=M" + "\n");
+
+            // clear local
+            for (int i = 0; i < Integer.parseInt(arg2); i++) {
                 this.writer.append("M=D" + "\n");
-                deepStack();
-                this.writer.append("@0" + "\n");
-                this.writer.append("D=A" + "\n");
-                this.writer.append("@SP" + "\n");
-                this.writer.append("A=M" + "\n");
-                this.writer.append("M=D" + "\n");
-                deepStack();
+                this.writer.append("A=A+1" + "\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -483,7 +484,7 @@ class CodeWriter {
             // save the LCL's value
             this.writer.append("@R13" + "\n");
             this.writer.append("M=D" + "\n");
-            
+
             // restore THAT
             this.writer.append("@R13" + "\n");
             this.writer.append("D=M" + "\n");
@@ -526,9 +527,107 @@ class CodeWriter {
             this.writer.append("D=M" + "\n");
             this.writer.append("@LCL" + "\n");
             this.writer.append("M=D" + "\n");
+
+            // goto return address
+            this.writer.append("@R13" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@5" + "\n");
+            this.writer.append("D=D-A" + "\n");
+            this.writer.append("A=D" + "\n");
+            this.writer.append("0;JMP" + "\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void writeCall(String arg1, String arg2) {
+        System.out.println("call " + arg1 + " " + arg2);
+        try {
+            // save number of argument to R13
+            this.writer.append("@" + arg2 + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@R13" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            // save callee adderss to R14
+            this.writer.append("@" + arg1 + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@R14" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            // push return address
+            this.writer.append("@RET_ADDRESS_CALL" + this.callCount + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("M=D" + "\n");
+            deepStack();
+
+            // push LCL
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("M=D" + "\n");
+            deepStack();
+
+            // push ARG
+            this.writer.append("@ARG" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("M=D" + "\n");
+            deepStack();
+
+            // push THIS
+            this.writer.append("@THIS" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("M=D" + "\n");
+            deepStack();
+
+            // push THAT
+            this.writer.append("@THAT" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("M=D" + "\n");
+            deepStack();
+
+            // change ARG to callee context
+            this.writer.append("@4" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@R13" + "\n");
+            this.writer.append("D=D+M" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("D=M-D" + "\n");
+            this.writer.append("@ARG" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            // change LCL to callee context
+            this.writer.append("@SP" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            // change SP to caller context
+            for (int i = 0; i < Integer.parseInt(arg2); i++) {
+                deepStack();
+            }
+
+            // goto callee function
+            this.writer.append("@R14" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("0;JMP" + "\n");
+
+            // add return label
+            this.writer.append("(RET_ADDRESS_CALL" + this.callCount + ")\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        this.callCount++;
     }
 
     public void close() {
