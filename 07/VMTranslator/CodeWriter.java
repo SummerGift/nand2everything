@@ -415,6 +415,16 @@ class CodeWriter {
         }
     }
 
+    public void writeGoto(String arg1) {
+        System.out.println("goto " + arg1);
+        try {
+            this.writer.append("@" + arg1 + "\n");
+            this.writer.append("0;JMP" + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void writeLabel(String arg1) {
         System.out.println("label " + arg1);
         try {

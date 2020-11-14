@@ -10,7 +10,7 @@ public class VMTranslator {
         // }
         // String pathName = args[0];
 
-        String pathName = "/Users/mac/work/nand2everything/08/ProgramFlow/BasicLoop/BasicLoop.vm";
+        String pathName = "/Users/mac/work/nand2everything/08/ProgramFlow/FibonacciSeries/FibonacciSeries.vm";
 
         File file = new File(pathName);
         ArrayList<String> vmFiles = new ArrayList<String>();
@@ -65,6 +65,9 @@ public class VMTranslator {
                         break;
                     case C_IF:
                         myCodeWriter.writeIf(arg1);
+                        break;
+                    case C_GOTO:
+                        myCodeWriter.writeGoto(arg1);
                         break;
                     default:
                         System.out.println("undefined command!");
