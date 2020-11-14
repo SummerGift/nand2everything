@@ -434,6 +434,106 @@ class CodeWriter {
         }
     }
 
+    public void writeFunction(String arg1, String arg2) {
+        System.out.println("function " + arg1 + " " + arg2);
+        try {
+            this.writer.append("(" + arg1 + ")\n");
+            for(int i = 0; i < Integer.parseInt(arg2); i++){
+                this.writer.append("@0" + "\n");
+                this.writer.append("D=A" + "\n");
+                this.writer.append("@SP" + "\n");
+                this.writer.append("A=M" + "\n");
+                this.writer.append("M=D" + "\n");
+                deepStack();
+                this.writer.append("@0" + "\n");
+                this.writer.append("D=A" + "\n");
+                this.writer.append("@SP" + "\n");
+                this.writer.append("A=M" + "\n");
+                this.writer.append("M=D" + "\n");
+                deepStack();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeReturn(String arg1) {
+        System.out.println("return");
+        try {
+            backStack();
+            // move return value to the address of ARG register
+            this.writer.append("@SP" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@ARG" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            // update SP register
+            this.writer.append("@ARG" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("M=D" + "\n");
+            deepStack();
+
+            // restore caller's LCL, ARG, THIS, THAT
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("D=M" + "\n");
+
+            // save the LCL's value
+            this.writer.append("@R13" + "\n");
+            this.writer.append("M=D" + "\n");
+            
+            // restore THAT
+            this.writer.append("@R13" + "\n");
+            this.writer.append("D=M" + "\n");
+
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("A=D" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@THAT" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            // restore THIS
+            this.writer.append("@R13" + "\n");
+            this.writer.append("D=M" + "\n");
+
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("A=D" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@THIS" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            // restore ARG
+            this.writer.append("@R13" + "\n");
+            this.writer.append("D=M" + "\n");
+
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("A=D" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@ARG" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            // restore LCL
+            this.writer.append("@R13" + "\n");
+            this.writer.append("D=M" + "\n");
+
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("D=D-1" + "\n");
+            this.writer.append("A=D" + "\n");
+            this.writer.append("D=M" + "\n");
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("M=D" + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void close() {
         try {
             this.writer.close();
