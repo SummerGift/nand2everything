@@ -10,8 +10,9 @@ public class VMTranslator {
         // }
         // String pathName = args[0];
 
-        String pathName = "/Users/mac/work/nand2everything/08/FunctionCalls/SimpleFunction/SimpleFunction.vm";
-
+        String pathName = "/Users/mac/work/nand2everything/08/FunctionCalls/NestedCall/NestedCall.vm";
+        // String pathName = "/Users/mac/work/nand2everything/08/FunctionCalls/SimpleFunction/SimpleFunction.vm";
+        
         File file = new File(pathName);
         ArrayList<String> vmFiles = new ArrayList<String>();
         if (file.isDirectory()) {
@@ -60,21 +61,25 @@ public class VMTranslator {
                         arg2 = myParser.arg2(readCommand, commandType);
                         myCodeWriter.writePop(arg1, arg2);
                         break;
-                        case C_LABEL:
+                    case C_LABEL:
                         myCodeWriter.writeLabel(arg1);
                         break;
-                        case C_IF:
+                    case C_IF:
                         myCodeWriter.writeIf(arg1);
                         break;
-                        case C_GOTO:
+                    case C_GOTO:
                         myCodeWriter.writeGoto(arg1);
                         break;
-                        case C_FUNCTION:
+                    case C_FUNCTION:
                         arg2 = myParser.arg2(readCommand, commandType);
                         myCodeWriter.writeFunction(arg1, arg2);
                         break;
                     case C_RETURN:
                         myCodeWriter.writeReturn(arg1);
+                        break;
+                    case C_CALL:
+                        arg2 = myParser.arg2(readCommand, commandType);
+                        myCodeWriter.writeCall(arg1, arg2);
                         break;
                     default:
                         System.out.println("undefined command!");

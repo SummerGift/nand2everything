@@ -440,7 +440,7 @@ class CodeWriter {
         try {
             this.writer.append("(" + arg1 + ")\n");
 
-            // set 0 to loacl
+            // set 0
             this.writer.append("@0" + "\n");
             this.writer.append("D=A" + "\n");
 
@@ -450,8 +450,13 @@ class CodeWriter {
 
             // clear local
             for (int i = 0; i < Integer.parseInt(arg2); i++) {
+                // set 0 to loacl
                 this.writer.append("M=D" + "\n");
                 this.writer.append("A=A+1" + "\n");
+            }
+
+            for (int i = 0; i < Integer.parseInt(arg2); i++) {
+                deepStack();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -474,56 +479,48 @@ class CodeWriter {
             this.writer.append("@ARG" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@SP" + "\n");
-            this.writer.append("M=D" + "\n");
-            deepStack();
-
-            // restore caller's LCL, ARG, THIS, THAT
-            this.writer.append("@LCL" + "\n");
-            this.writer.append("D=M" + "\n");
+            this.writer.append("M=D+1" + "\n");
 
             // save the LCL's value
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("D=M" + "\n");
             this.writer.append("@R13" + "\n");
             this.writer.append("M=D" + "\n");
 
             // restore THAT
-            this.writer.append("@R13" + "\n");
-            this.writer.append("D=M" + "\n");
-
-            this.writer.append("D=D-1" + "\n");
-            this.writer.append("A=D" + "\n");
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("A=A-1" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@THAT" + "\n");
             this.writer.append("M=D" + "\n");
 
             // restore THIS
-            this.writer.append("@R13" + "\n");
-            this.writer.append("D=M" + "\n");
-
-            this.writer.append("@2" + "\n");
-            this.writer.append("D=D-A" + "\n");
-            this.writer.append("A=D" + "\n");
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("A=A-1" + "\n");
+            this.writer.append("A=A-1" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@THIS" + "\n");
             this.writer.append("M=D" + "\n");
 
             // restore ARG
-            this.writer.append("@R13" + "\n");
-            this.writer.append("D=M" + "\n");
-
-            this.writer.append("@3" + "\n");
-            this.writer.append("D=D-A" + "\n");
-            this.writer.append("A=D" + "\n");
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("A=A-1" + "\n");
+            this.writer.append("A=A-1" + "\n");
+            this.writer.append("A=A-1" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@ARG" + "\n");
             this.writer.append("M=D" + "\n");
 
             // restore LCL
-            this.writer.append("@R13" + "\n");
-            this.writer.append("D=M" + "\n");
-
-            this.writer.append("@4" + "\n");
-            this.writer.append("D=D-A" + "\n");
-            this.writer.append("A=D" + "\n");
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("A=M" + "\n");
+            this.writer.append("A=A-1" + "\n");
+            this.writer.append("A=A-1" + "\n");
+            this.writer.append("A=A-1" + "\n");
+            this.writer.append("A=A-1" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@LCL" + "\n");
             this.writer.append("M=D" + "\n");
@@ -532,8 +529,8 @@ class CodeWriter {
             this.writer.append("@R13" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@5" + "\n");
-            this.writer.append("D=D-A" + "\n");
-            this.writer.append("A=D" + "\n");
+            this.writer.append("AD=D-A" + "\n");
+            this.writer.append("A=M" + "\n");
             this.writer.append("0;JMP" + "\n");
         } catch (IOException e) {
             e.printStackTrace();
@@ -554,6 +551,16 @@ class CodeWriter {
             this.writer.append("D=A" + "\n");
             this.writer.append("@R14" + "\n");
             this.writer.append("M=D" + "\n");
+
+            // if arg number is 0, still need to store return value
+            if (Integer.parseInt(arg2) == 0){
+                this.writer.append("@0" + "\n");
+                this.writer.append("D=A" + "\n");
+                this.writer.append("@SP" + "\n");
+                this.writer.append("A=M" + "\n");
+                this.writer.append("M=D" + "\n");
+                deepStack();
+            }
 
             // push return address
             this.writer.append("@RET_ADDRESS_CALL" + this.callCount + "\n");
@@ -595,26 +602,28 @@ class CodeWriter {
             this.writer.append("M=D" + "\n");
             deepStack();
 
-            // change ARG to callee context
-            this.writer.append("@4" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@R13" + "\n");
-            this.writer.append("D=D+M" + "\n");
-            this.writer.append("@SP" + "\n");
-            this.writer.append("D=M-D" + "\n");
-            this.writer.append("@ARG" + "\n");
-            this.writer.append("M=D" + "\n");
-
             // change LCL to callee context
             this.writer.append("@SP" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@LCL" + "\n");
             this.writer.append("M=D" + "\n");
 
-            // change SP to caller context
-            for (int i = 0; i < Integer.parseInt(arg2); i++) {
-                deepStack();
+            // change ARG to callee context
+            this.writer.append("@5" + "\n");
+            this.writer.append("D=A" + "\n");
+
+            // if arg number is 0, still need store return value
+            if (Integer.parseInt(arg2) == 0){
+                this.writer.append("@1" + "\n");
+            }else{
+                this.writer.append("@" + arg2 + "\n");
             }
+
+            this.writer.append("D=D+A" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("D=M-D" + "\n");
+            this.writer.append("@ARG" + "\n");
+            this.writer.append("M=D" + "\n");
 
             // goto callee function
             this.writer.append("@R14" + "\n");
