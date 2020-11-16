@@ -37,6 +37,41 @@ class CodeWriter {
             this.writer.append("@SP" + "\n");
             this.writer.append("M=D" + "\n");
 
+            this.writer.append("@261" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@LCL" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            this.writer.append("@256" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@ARG" + "\n");
+            this.writer.append("M=D" + "\n");
+            
+            this.writer.append("@1234" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@256" + "\n");
+            this.writer.append("M=D" + "\n");
+            
+            this.writer.append("@1" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@257" + "\n");
+            this.writer.append("M=D" + "\n");
+            
+            this.writer.append("@2" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@258" + "\n");
+            this.writer.append("M=D" + "\n");
+            
+            this.writer.append("@3" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@259" + "\n");
+            this.writer.append("M=D" + "\n");
+            
+            this.writer.append("@4" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@260" + "\n");
+            this.writer.append("M=D" + "\n");
+
             this.writer.append("@Sys.init" + "\n");
             this.writer.append("0;JMP" + "\n");
         } catch (IOException e) {
@@ -424,7 +459,7 @@ class CodeWriter {
             this.writer.append("A=M" + "\n");
             this.writer.append("D=M" + "\n");
             this.writer.append("@" + arg1 + "\n");
-            this.writer.append("D;JGT" + "\n");
+            this.writer.append("D;JNE" + "\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
