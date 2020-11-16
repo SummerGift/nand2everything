@@ -30,6 +30,20 @@ class CodeWriter {
         this.codeLineCount += 1;
     }
 
+    public void writeStartUpCode() {
+        try {
+            this.writer.append("@261" + "\n");
+            this.writer.append("D=A" + "\n");
+            this.writer.append("@SP" + "\n");
+            this.writer.append("M=D" + "\n");
+
+            this.writer.append("@Sys.init" + "\n");
+            this.writer.append("0;JMP" + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void deepStack() {
         try {
             this.writer.append("@SP" + "\n");
@@ -553,7 +567,7 @@ class CodeWriter {
             this.writer.append("M=D" + "\n");
 
             // if arg number is 0, still need to store return value
-            if (Integer.parseInt(arg2) == 0){
+            if (Integer.parseInt(arg2) == 0) {
                 this.writer.append("@0" + "\n");
                 this.writer.append("D=A" + "\n");
                 this.writer.append("@SP" + "\n");
@@ -563,11 +577,19 @@ class CodeWriter {
             }
 
             // push return address
-            this.writer.append("@RET_ADDRESS_CALL" + this.callCount + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@SP" + "\n");
-            this.writer.append("A=M" + "\n");
-            this.writer.append("M=D" + "\n");
+            if (arg1.equals("Sys.init")){
+                this.writer.append("@0" + "\n");
+                this.writer.append("D=A" + "\n");
+                this.writer.append("@SP" + "\n");
+                this.writer.append("A=M" + "\n");
+                this.writer.append("M=D" + "\n");
+            }else{
+                this.writer.append("@RET_ADDRESS_CALL" + this.callCount + "\n");
+                this.writer.append("D=A" + "\n");
+                this.writer.append("@SP" + "\n");
+                this.writer.append("A=M" + "\n");
+                this.writer.append("M=D" + "\n");
+            }
             deepStack();
 
             // push LCL
@@ -613,9 +635,9 @@ class CodeWriter {
             this.writer.append("D=A" + "\n");
 
             // if arg number is 0, still need store return value
-            if (Integer.parseInt(arg2) == 0){
+            if (Integer.parseInt(arg2) == 0) {
                 this.writer.append("@1" + "\n");
-            }else{
+            } else {
                 this.writer.append("@" + arg2 + "\n");
             }
 
