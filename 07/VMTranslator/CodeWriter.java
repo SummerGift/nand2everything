@@ -30,50 +30,56 @@ class CodeWriter {
         this.codeLineCount += 1;
     }
 
-    public void writeStartUpCode() {
+    public static void writeStartUpCode(String outPutFile) {
         try {
-            this.writer.append("@261" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@SP" + "\n");
-            this.writer.append("M=D" + "\n");
+            File f = new File(outPutFile);
+            FileOutputStream fop = new FileOutputStream(f);
+            OutputStreamWriter writer = new OutputStreamWriter(fop, "UTF-8");
+            writer.append("@261" + "\n");
+            writer.append("D=A" + "\n");
+            writer.append("@SP" + "\n");
+            writer.append("M=D" + "\n");
 
-            this.writer.append("@261" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@LCL" + "\n");
-            this.writer.append("M=D" + "\n");
+            writer.append("@261" + "\n");
+            writer.append("D=A" + "\n");
+            writer.append("@LCL" + "\n");
+            writer.append("M=D" + "\n");
 
-            this.writer.append("@256" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@ARG" + "\n");
-            this.writer.append("M=D" + "\n");
-            
-            this.writer.append("@1234" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@256" + "\n");
-            this.writer.append("M=D" + "\n");
-            
-            this.writer.append("@1" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@257" + "\n");
-            this.writer.append("M=D" + "\n");
-            
-            this.writer.append("@2" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@258" + "\n");
-            this.writer.append("M=D" + "\n");
-            
-            this.writer.append("@3" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@259" + "\n");
-            this.writer.append("M=D" + "\n");
-            
-            this.writer.append("@4" + "\n");
-            this.writer.append("D=A" + "\n");
-            this.writer.append("@260" + "\n");
-            this.writer.append("M=D" + "\n");
+            writer.append("@256" + "\n");
+            writer.append("D=A" + "\n");
+            writer.append("@ARG" + "\n");
+            writer.append("M=D" + "\n");
+        
+            writer.append("@1234" + "\n");
+            writer.append("D=A" + "\n");
+            writer.append("@256" + "\n");
+            writer.append("M=D" + "\n");
+        
+            writer.append("@1" + "\n");
+            writer.append("D=A" + "\n");
+            writer.append("@257" + "\n");
+            writer.append("M=D" + "\n");
+        
+            writer.append("@2" + "\n");
+            writer.append("D=A" + "\n");
+            writer.append("@258" + "\n");
+            writer.append("M=D" + "\n");
+        
+            writer.append("@3" + "\n");
+            writer.append("D=A" + "\n");
+            writer.append("@259" + "\n");
+            writer.append("M=D" + "\n");
+        
+            writer.append("@4" + "\n");
+            writer.append("D=A" + "\n");
+            writer.append("@260" + "\n");
+            writer.append("M=D" + "\n");
 
-            this.writer.append("@Sys.init" + "\n");
-            this.writer.append("0;JMP" + "\n");
+            writer.append("@Sys.init" + "\n");
+            writer.append("0;JMP" + "\n");
+
+            writer.close();
+            fop.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
