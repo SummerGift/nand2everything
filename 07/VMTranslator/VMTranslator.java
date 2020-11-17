@@ -77,13 +77,13 @@ public class VMTranslator {
     }
 
     public static void main(String[] args) {
-        // if (args.length == 0) {
-        // System.out.println("\nPlease specific .vm filename or folder!\n");
-        // return;
-        // }
-        // String pathName = args[0];
+        if (args.length == 0) {
+        System.out.println("\nPlease specific .vm filename or folder!\n");
+        return;
+        }
+        String pathName = args[0];
 
-        String pathName = "/Users/mac/work/nand2everything/08/FunctionCalls/StaticsTest";
+        // String pathName = "G:\\working_on\\nand2everything\\08\\FunctionCalls\\StaticsTest";
 
         File file = new File(pathName);
         if (file.isFile()) {
