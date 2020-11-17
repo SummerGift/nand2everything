@@ -21,9 +21,11 @@ public class VMTranslator {
             }
         }
 
+        String outAsmFileName_temp = outAsmFileName + "temp";
+
         // merge all asm files into one
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outAsmFileName));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(outAsmFileName_temp));
 
             for (int i = 0; i < vmFiles.size(); i++) {
                 System.out.println("Path: " + vmFiles.get(i));
@@ -46,6 +48,30 @@ public class VMTranslator {
         // write startup code to call sys.init
         String startAsmFileName = file.getPath() + "/startup.asm";
         CodeWriter.writeStartUpCode(startAsmFileName);
+
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(outAsmFileName));
+
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(startAsmFileName));
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                bw.write(line);
+                bw.newLine();
+            }
+            bufferedReader.close();
+
+            bufferedReader = new BufferedReader(new FileReader(outAsmFileName_temp));
+            while ((line = bufferedReader.readLine()) != null) {
+                bw.write(line);
+                bw.newLine();
+            }
+            bufferedReader.close();
+
+            bw.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return outAsmFileName;
     }
