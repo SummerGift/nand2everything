@@ -21,14 +21,14 @@ public class VMTranslator {
             }
         }
 
-        String outAsmFileName_temp = outAsmFileName + "temp";
+        String outAsmFileName_temp = outAsmFileName.replace(".asm", ".temp");
 
         // merge all asm files into one
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(outAsmFileName_temp));
 
             for (int i = 0; i < vmFiles.size(); i++) {
-                System.out.println("Path: " + vmFiles.get(i));
+                System.out.println("Begin to merge Path: " + vmFiles.get(i));
 
                 File fileMerge = new File(vmFiles.get(i));
                 BufferedReader bufferedReader = new BufferedReader(new FileReader(fileMerge));
@@ -49,6 +49,7 @@ public class VMTranslator {
         String startAsmFileName = file.getPath() + "/startup.asm";
         CodeWriter.writeStartUpCode(startAsmFileName);
 
+        System.out.println("Begin to add startup code.");
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(outAsmFileName));
 
@@ -78,21 +79,86 @@ public class VMTranslator {
 
     public static void main(String[] args) {
         if (args.length == 0) {
-        System.out.println("\nPlease specific .vm filename or folder!\n");
-        return;
+            System.out.println("\nPlease specific .vm filename or folder!\n");
+            return;
         }
         String pathName = args[0];
-
-        // String pathName = "G:\\working_on\\nand2everything\\08\\FunctionCalls\\StaticsTest";
 
         File file = new File(pathName);
         if (file.isFile()) {
             System.out.println("\nPath is a filename.\n");
+
+            Parser myParser = new Parser(pathName);
+            myParser.readFile();
+            CodeWriter myCodeWriter = new CodeWriter(myParser.getFileName());
+
+            while (myParser.hasMoreCommands()) {
+                String readCommand = myParser.advance();
+
+                myCodeWriter.addCodeLine();
+
+                commandTypeTranslator commandType = myParser.commandType(readCommand);
+
+                String arg1 = myParser.arg1(readCommand, commandType);
+                String arg2;
+
+                switch (commandType) {
+                    case C_ARITHMETIC:
+                        myCodeWriter.writeArithetic(arg1);
+                        break;
+                    case C_PUSH:
+                        arg2 = myParser.arg2(readCommand, commandType);
+                        myCodeWriter.writePush(arg1, arg2);
+                        break;
+                    case C_POP:
+                        arg2 = myParser.arg2(readCommand, commandType);
+                        myCodeWriter.writePop(arg1, arg2);
+                        break;
+                    case C_LABEL:
+                        myCodeWriter.writeLabel(arg1);
+                        break;
+                    case C_IF:
+                        myCodeWriter.writeIf(arg1);
+                        break;
+                    case C_GOTO:
+                        myCodeWriter.writeGoto(arg1);
+                        break;
+                    case C_FUNCTION:
+                        arg2 = myParser.arg2(readCommand, commandType);
+                        myCodeWriter.writeFunction(arg1, arg2);
+                        break;
+                    case C_RETURN:
+                        myCodeWriter.writeReturn(arg1);
+                        break;
+                    case C_CALL:
+                        arg2 = myParser.arg2(readCommand, commandType);
+                        myCodeWriter.writeCall(arg1, arg2);
+                        break;
+                    default:
+                        System.out.println("undefined command!");
+                }
+            }
+
+            myCodeWriter.close();
+            myParser.close();
+
+            return;
         }
 
         if (file.isDirectory()) {
 
             System.out.println("Path is a folder, we will merge all vm files.\n");
+
+            System.out.println("Del all asm files first.\n");
+
+            File[] fsDel = file.listFiles();
+            for (File f : fsDel) {
+                if (!f.isDirectory()) {
+                    if (f.getName().endsWith(".asm")) {
+                        f.delete();
+                    }
+                }
+            }
 
             ArrayList<String> vmFiles = new ArrayList<String>();
             File[] fs = file.listFiles();
@@ -105,7 +171,7 @@ public class VMTranslator {
             }
 
             for (int i = 0; i < vmFiles.size(); i++) {
-                System.out.println("Path: " + vmFiles.get(i));
+                System.out.println("begin to translate Path: " + vmFiles.get(i) + "\n");
 
                 Parser myParser = new Parser(vmFiles.get(i));
                 myParser.readFile();
@@ -165,7 +231,6 @@ public class VMTranslator {
             // merge .asm files and add startup code
             fileMerge(pathName);
         }
-
         return;
     }
 }

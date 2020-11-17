@@ -625,7 +625,7 @@ class CodeWriter {
                 this.writer.append("A=M" + "\n");
                 this.writer.append("M=D" + "\n");
             }else{
-                this.writer.append("@RET_ADDRESS_CALL" + this.callCount + "\n");
+                this.writer.append("@RET_ADDRESS_CALL_" + this.fileName + this.callCount + "\n");
                 this.writer.append("D=A" + "\n");
                 this.writer.append("@SP" + "\n");
                 this.writer.append("A=M" + "\n");
@@ -694,7 +694,7 @@ class CodeWriter {
             this.writer.append("0;JMP" + "\n");
 
             // add return label
-            this.writer.append("(RET_ADDRESS_CALL" + this.callCount + ")\n");
+            this.writer.append("(RET_ADDRESS_CALL_" + this.fileName + this.callCount + ")\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
