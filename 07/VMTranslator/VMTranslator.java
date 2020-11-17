@@ -77,6 +77,62 @@ public class VMTranslator {
         return outAsmFileName;
     }
 
+    private static void writeAsm(String pathName) {
+        Parser myParser = new Parser(pathName);
+        myParser.readFile();
+        CodeWriter myCodeWriter = new CodeWriter(myParser.getFileName());
+
+        while (myParser.hasMoreCommands()) {
+            String readCommand = myParser.advance();
+
+            myCodeWriter.addCodeLine();
+
+            commandTypeTranslator commandType = myParser.commandType(readCommand);
+
+            String arg1 = myParser.arg1(readCommand, commandType);
+            String arg2;
+
+            switch (commandType) {
+                case C_ARITHMETIC:
+                    myCodeWriter.writeArithetic(arg1);
+                    break;
+                case C_PUSH:
+                    arg2 = myParser.arg2(readCommand, commandType);
+                    myCodeWriter.writePush(arg1, arg2);
+                    break;
+                case C_POP:
+                    arg2 = myParser.arg2(readCommand, commandType);
+                    myCodeWriter.writePop(arg1, arg2);
+                    break;
+                case C_LABEL:
+                    myCodeWriter.writeLabel(arg1);
+                    break;
+                case C_IF:
+                    myCodeWriter.writeIf(arg1);
+                    break;
+                case C_GOTO:
+                    myCodeWriter.writeGoto(arg1);
+                    break;
+                case C_FUNCTION:
+                    arg2 = myParser.arg2(readCommand, commandType);
+                    myCodeWriter.writeFunction(arg1, arg2);
+                    break;
+                case C_RETURN:
+                    myCodeWriter.writeReturn(arg1);
+                    break;
+                case C_CALL:
+                    arg2 = myParser.arg2(readCommand, commandType);
+                    myCodeWriter.writeCall(arg1, arg2);
+                    break;
+                default:
+                    System.out.println("undefined command!");
+            }
+        }
+
+        myCodeWriter.close();
+        myParser.close();
+    }
+
     public static void main(String[] args) {
         if (args.length == 0) {
             System.out.println("\nPlease specific .vm filename or folder!\n");
@@ -88,59 +144,7 @@ public class VMTranslator {
         if (file.isFile()) {
             System.out.println("\nPath is a filename.\n");
 
-            Parser myParser = new Parser(pathName);
-            myParser.readFile();
-            CodeWriter myCodeWriter = new CodeWriter(myParser.getFileName());
-
-            while (myParser.hasMoreCommands()) {
-                String readCommand = myParser.advance();
-
-                myCodeWriter.addCodeLine();
-
-                commandTypeTranslator commandType = myParser.commandType(readCommand);
-
-                String arg1 = myParser.arg1(readCommand, commandType);
-                String arg2;
-
-                switch (commandType) {
-                    case C_ARITHMETIC:
-                        myCodeWriter.writeArithetic(arg1);
-                        break;
-                    case C_PUSH:
-                        arg2 = myParser.arg2(readCommand, commandType);
-                        myCodeWriter.writePush(arg1, arg2);
-                        break;
-                    case C_POP:
-                        arg2 = myParser.arg2(readCommand, commandType);
-                        myCodeWriter.writePop(arg1, arg2);
-                        break;
-                    case C_LABEL:
-                        myCodeWriter.writeLabel(arg1);
-                        break;
-                    case C_IF:
-                        myCodeWriter.writeIf(arg1);
-                        break;
-                    case C_GOTO:
-                        myCodeWriter.writeGoto(arg1);
-                        break;
-                    case C_FUNCTION:
-                        arg2 = myParser.arg2(readCommand, commandType);
-                        myCodeWriter.writeFunction(arg1, arg2);
-                        break;
-                    case C_RETURN:
-                        myCodeWriter.writeReturn(arg1);
-                        break;
-                    case C_CALL:
-                        arg2 = myParser.arg2(readCommand, commandType);
-                        myCodeWriter.writeCall(arg1, arg2);
-                        break;
-                    default:
-                        System.out.println("undefined command!");
-                }
-            }
-
-            myCodeWriter.close();
-            myParser.close();
+            writeAsm(pathName);
 
             return;
         }
@@ -172,60 +176,7 @@ public class VMTranslator {
 
             for (int i = 0; i < vmFiles.size(); i++) {
                 System.out.println("begin to translate Path: " + vmFiles.get(i) + "\n");
-
-                Parser myParser = new Parser(vmFiles.get(i));
-                myParser.readFile();
-                CodeWriter myCodeWriter = new CodeWriter(myParser.getFileName());
-
-                while (myParser.hasMoreCommands()) {
-                    String readCommand = myParser.advance();
-
-                    myCodeWriter.addCodeLine();
-
-                    commandTypeTranslator commandType = myParser.commandType(readCommand);
-
-                    String arg1 = myParser.arg1(readCommand, commandType);
-                    String arg2;
-
-                    switch (commandType) {
-                        case C_ARITHMETIC:
-                            myCodeWriter.writeArithetic(arg1);
-                            break;
-                        case C_PUSH:
-                            arg2 = myParser.arg2(readCommand, commandType);
-                            myCodeWriter.writePush(arg1, arg2);
-                            break;
-                        case C_POP:
-                            arg2 = myParser.arg2(readCommand, commandType);
-                            myCodeWriter.writePop(arg1, arg2);
-                            break;
-                        case C_LABEL:
-                            myCodeWriter.writeLabel(arg1);
-                            break;
-                        case C_IF:
-                            myCodeWriter.writeIf(arg1);
-                            break;
-                        case C_GOTO:
-                            myCodeWriter.writeGoto(arg1);
-                            break;
-                        case C_FUNCTION:
-                            arg2 = myParser.arg2(readCommand, commandType);
-                            myCodeWriter.writeFunction(arg1, arg2);
-                            break;
-                        case C_RETURN:
-                            myCodeWriter.writeReturn(arg1);
-                            break;
-                        case C_CALL:
-                            arg2 = myParser.arg2(readCommand, commandType);
-                            myCodeWriter.writeCall(arg1, arg2);
-                            break;
-                        default:
-                            System.out.println("undefined command!");
-                    }
-                }
-
-                myCodeWriter.close();
-                myParser.close();
+                writeAsm(vmFiles.get(i));
             }
 
             // merge .asm files and add startup code
