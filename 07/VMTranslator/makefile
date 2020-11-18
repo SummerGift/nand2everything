@@ -1,5 +1,5 @@
 all:
-	javac CodeWriter.java Parser.java VMTranslator.java
+	javac *.java
 	java VMTranslator $(p)
 
 clean:
