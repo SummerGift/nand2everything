@@ -59,5 +59,11 @@ I start using Java to develop program since project7, add more fun and challenge
 
 This project is about design stack-based machanisms for handling nested subroutine calls of procedural or object-oriented languages.
 
-- [ ] Program Flow
-- [ ] Function Calls
+- [x] Program Flow
+- [x] Function Calls
+
+Now project 8 has been finished, it takes me a lot of effort to handle recursion call. The problem is about -1 is great than 0 or not. Human will think -1 is less than zero, but computer won't, computer uses complement to represent numbers, so it will think -1 is great than 0, so when the recursion meet -1, it will go on loop but not exit the recursion. So, this point shoud be noticed when implement VM translator.
+
+All right, let's go on next project.
+
+### [Project 9 High-Level Language](09)
