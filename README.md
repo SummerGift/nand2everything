@@ -67,3 +67,5 @@ Now project 8 has been finished, it takes me a lot of effort to handle the recur
 All right, let's go to the next project.
 
 ### [Project 9 High-Level Language](09)
+
+I am going to learn how a programming language is designed and implemented in project 9. Suddenly I realized that if we can understand the principle of designing and implementation, it means we can get a deep understanding of many programming languages.
