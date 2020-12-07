@@ -1,18 +1,24 @@
 class Main {
 
     function void main() {
-        var Fraction a, b, c;
-        let a = Fraction.new(2 , 8);
-        do a.print();
-        do Output.println();
-        let b = Fraction.new(8 , 16);
-        do b.print();
-        do Output.println();
-        let c = a.plus(b);
-        do c.print();
-        do Output.println();
+        // var Fraction a, b, c;
+        // let a = Fraction.new(2 , 8);
+        // do a.print();
+        // do Output.println();
+        // let b = Fraction.new(8 , 16);
+        // do b.print();
+        // do Output.println();
+        // let c = a.plus(b);
+        // do c.print();
+        // do Output.println();
+        // do Output.printInt(a.getNumerator());
+        // do Output.println();
 
-        do Output.printInt(a.getNumerator());
+        var List v;
+        let v = List.new(5, null);
+        do v.print();
+        let v = List.new(8, v);
+        do v.print();
 
         return;
     }
