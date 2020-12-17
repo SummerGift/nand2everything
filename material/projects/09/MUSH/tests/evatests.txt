@@ -1,0 +1,243 @@
+* Evaluation Tests
+
+** Expression Tests
+*** Factor
+**** factor test1
+MUSH>type 5
+5
+
+**** factor test2
+MUSH>type 'abc'
+'abc'
+
+**** factor test3
+MUSH>type (-5)
+-5
+
+**** factor test4
+MUSH>type (-(-5))
+5
+
+*** Term
+**** term test1
+MUSH>type 5*4
+20
+
+**** term test2
+MUSH>type (-18/(-4))
+4
+
+**** term test3
+MUSH>type 23 mod (1+2*2)
+3
+
+*** Arithm
+**** arithm1
+MUSH>type 1+2+3
+6
+
+**** arithm2
+MUSH>type 5 - 11 mod 3
+3
+
+**** arithm3
+MUSH>type 3*4 - (2 + 30) / 4
+4
+
+*** Expr and LogExpr
+**** logexpr1
+MUSH>type true
+true
+
+**** logexpr2
+MUSH>type not false or not true
+true
+ 
+**** logexpr3
+MUSH>type 3 > 4
+false
+
+**** logexpr4
+MUSH>type not 2 * 4 >= 12 - 10
+false
+
+** Assignments and Variables
+*** assign1
+MUSH>declare a integer
+MUSH>a=4
+MUSH>type a
+4
+MUSH>a=5
+MUSH>type a*10
+50
+
+*** assign2
+MUSH>declare b integer
+MUSH>b=5
+MUSH>declare c integer
+MUSH>c = b * 12
+MUSH>type c - 9
+51
+
+** Condition Tests
+
+** Block and Loop Tests
+*** Do Block
+**** test1
+MUSH>declare a integer
+MUSH>a=1
+MUSH>type a
+1
+MUSH>do
+MUSH>declare a integer
+       a=10
+       type a
+     end
+10
+MUSH>type a
+1
+
+*** Do While
+**** do_while1
+MUSH>declare a integer
+MUSH>declare b integer
+MUSH>declare c integer
+MUSH>a=7
+MUSH>b=8
+MUSH>c=0
+MUSH>do while a > 0
+       c=c+b
+       a=a-1
+     end
+MUSH>type c
+56
+
+*** Do Iter
+**** do_iter1
+MUSH>declare a integer
+MUSH>do a=5 to 9 by 2
+       type a
+     end
+5
+7
+9
+
+**** do_iter2
+MUSH>declare a integer
+MUSH>do a=4 to 6
+       declare x integer
+       x=a*2
+       type a
+       type x
+    end
+4
+8
+5
+10
+6
+12
+
+** Procedure Tests
+*** a. no return value tests
+**** proc test a1
+MUSH>declare (p)
+       type 'abcd'
+     end p
+MUSH>p
+abcd
+
+**** proc test a2
+MUSH>declare (pp n)
+       declare n integer
+       type n*7
+     end pp
+MUSH>pp 213
+1491
+
+**** proc test a3
+MUSH>declare s string
+MUSH>declare (proc)
+       type s
+     end proc
+MUSH>declare (scope)
+       declare s string
+       s='dynamic'
+       proc
+     end scope
+MUSH>s='lexical'
+MUSH>scope
+lexical
+
+**** proc test a4
+MUSH>declare (test)
+       declare x integer
+       declare (test2 n)
+         declare n integer
+         x=x+n
+         type x
+       end test2
+       x=100
+       test2 1
+       test2 2
+       test2 3
+     end test2
+MUSH>test
+101
+103
+106
+
+*** b. procedures with return value
+**** proc test b1
+MUSH>declare (sum n) integer
+       declare n integer
+       declare r integer
+       r=0
+       do while n > 0
+         r=r+n
+         n=n-1
+       end
+       return r
+     end sum
+MUSH>type (sum 4)
+10
+MUSH>type (sum 7)
+28
+
+**** proc test b2
+MUSH>declare (fib n) integer
+       declare n integer
+       if n < 2 then
+         return n
+       else
+         return (fib n-1) + (fib n-2)
+     end fib
+MUSH>type (fib 4)
+3
+MUSH>type (fib 7)
+13
+
+**** proc test b3
+MUSH>declare (mult a b) integer
+       declare a integer
+       declare b integer
+       declare (rec a b acc) integer
+         declare a integer
+         declare b integer
+         declare acc integer
+         if b = 0 then
+           return acc
+         else if b-b/2*2 = 0 then
+           return (rec 2*a b/2 acc)
+         else
+           return (rec a b-1 acc+a)
+       end rec
+       return (rec a b 0)
+     end mult
+MUSH>type (mult 3 6)
+18
+MUSH>type (mult 17 77)
+1309
+MUSH>type (mult 20 0)
+0
+MUSH>type (mult 0 100)
+0

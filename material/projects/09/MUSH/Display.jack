@@ -1,0 +1,275 @@
+class Display {
+
+    static integer row;
+    static integer column;
+
+    function void init() {
+        let row = 0;
+        let column = 0;
+        return;
+    }
+
+    function char read() {
+        var char c;
+        let c = Keyboard.keyPressed();
+        while (c = 0) {
+            do Sys.wait(2);
+            let c = Keyboard.keyPressed();
+        }
+        while (Keyboard.keyPressed() = c) {
+            do Sys.wait(2);
+        }
+        return c;
+    }
+
+    function void newline() {
+        do Display.fillChar(row, column, false);
+        let column = 0;
+        if (row < (Const.SCREEN_HEIGHT() - 1)) {
+            let row = row + 1;
+        } else {
+            do Display.scrollUp();
+        }
+        do Output.moveCursor(row, column);
+        do Display.fillChar(row, column, true);
+        return;
+    }
+
+    function String readln() {
+        var integer i;
+        var char c;
+        var String line;
+        let i = 0;
+        let c = Display.read();
+        let line = String.new(Const.MAX_LINE());
+        while ((i < Const.MAX_LINE()) & (~(c = 128))) {
+            if ((c = 129) & (i > 0)) {            /* if backspace */
+                if (line.length() > 0) {
+                    do line.eraseLastChar();
+                    do Display.backspace();
+                }
+            } else {
+                let c = Tools.lcChar(c);
+                do Display.printChar(c);
+                do line.appendChar(c);
+            }
+            let c = Display.read();
+            let i = i + 1;
+        }
+        do Display.newline();
+        return line;
+    }
+
+    function void prch(char c) {
+        if (column < (Const.SCREEN_WIDTH() - 1)) {
+            do Output.printChar(c);
+            let column = column + 1;
+        } else {
+            let column = 0;
+            if (row < (Const.SCREEN_HEIGHT() - 1)) {
+                do Output.printChar(c);
+                let row = row + 1;
+            } else {
+                do Display.scrollUp();
+                do Output.moveCursor(Const.SCREEN_HEIGHT() - 2,
+                 Const.SCREEN_WIDTH() - 1);
+                do Output.printChar(c);
+            }
+        }
+        return;
+    }
+
+    function void printChar(char c) {
+        do Output.moveCursor(row, column);
+        do Display.prch(c);
+        do Display.fillChar(row, column, true);
+        return;
+    }
+
+    function void printString(String str) {
+        var integer i;
+        var integer l;
+        let i = 0;
+        let l = str.length();
+        while (i < l) {
+            do Display.prch(str.charAt(i));
+            let i = i + 1;
+        }
+        do Output.moveCursor(row, column);
+        do Display.fillChar(row, column, true);
+        return;
+    }
+
+    function void printConst(String str) {
+        do Display.printString(str);
+        do str.dispose();
+        return;
+    }
+
+    function void printInt(integer n) {
+        var String string;
+        let string = String.new(6);
+        do string.setInt(n);
+        do Display.printString(string);
+        do string.dispose();
+        return;
+    }
+
+    function void println(String str) {
+        do Display.printString(str);
+        do Display.newline();
+        return;
+    }
+
+    function void printConstln(String str) {
+        do Display.printString(str);
+        do str.dispose();
+        do Display.newline();
+        return;
+    }
+
+    function void fillChar(integer row, integer column, boolean black) {
+        var integer i;
+        var integer charLineSize;
+        var integer step;
+        var integer n;
+        var integer value;
+        var Array RAM;
+        let step = (Const.CHAR_WIDTH() * Const.SCREEN_WIDTH()) / 16;
+        let charLineSize = step * Const.CHAR_HEIGHT();
+        let i = (row * charLineSize) + ((column * Const.CHAR_WIDTH()) / 16);
+        let i = i + step;       /* because char is not drawn on first pixel */
+        let n = 1;
+        while (n < Const.CHAR_HEIGHT()) {
+            let value = RAM[Const.SCREEN() + i];
+            if (black) {
+                if ((column & 1) = 0) {
+                    let value = 255 | value;
+                } else {
+                    let value = (255 * 256) | value;
+                }
+            } else {
+                if ((column & 1) = 0) {
+                    let value = (255 * 256) & value;
+                } else {
+                    let value = 255 & value;
+                }
+            }
+            let RAM[Const.SCREEN() + i] = value;
+            let i = i + step;
+            let n = n + 1;
+        }
+        return;
+    }
+
+    function void backspace() {
+        do Display.fillChar(row, column, false);
+        if ((column = 0) & (row = 0)) {
+            return;
+        }
+        if (column > 0) {
+            let column = column - 1;
+        } else {
+            let column = Const.SCREEN_WIDTH() - 1;
+            let row = row - 1;
+        }
+        do Output.moveCursor(row, column);
+        do Display.fillChar(row, column, true);
+        return;
+    }
+
+    function void scrollUp() {
+        var integer i;
+        var integer j;
+        var integer charLineSize;
+        var integer tmp;
+        var Array RAM;
+        let charLineSize = ((Const.CHAR_WIDTH() * Const.SCREEN_WIDTH()) *
+        Const.CHAR_HEIGHT()) / 16;
+        let i = Const.SCREEN();
+        let j = Const.SCREEN() + charLineSize;
+        let tmp = Const.SCREEN() + (charLineSize * (Const.SCREEN_HEIGHT() - 1));
+        while (i < tmp) {
+            let RAM[i] = RAM[j];
+            let i = i + 1;
+            let j = j + 1;
+        }
+        while (i < j) {
+            let RAM[i] = 0;
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    function void clear() {
+        var integer w;
+        var integer h;
+        var integer i;
+        var integer tmp;
+        var Array RAM;
+
+        let w = (Const.CHAR_WIDTH() * Const.SCREEN_WIDTH()) / 16;
+        let h = Const.CHAR_HEIGHT() * Const.SCREEN_HEIGHT();
+        let i = Const.SCREEN();
+        let tmp = i + (w * h);
+        while (i < tmp) {
+            let RAM[i] = 0;
+            let i = i + 1;
+        }
+        let row = 0;
+        let column = 0;
+        do Output.moveCursor(row, column);
+        return;
+    }
+
+    /* shift screen an amount of 16-bit words, osh=supplementary 1 char shift */
+    function void shiftLineLeftWords(integer line, integer n, boolean osh) {
+        var integer to;
+        var integer swds;	/* size of screen in words of 16 bits */
+        var integer y;
+        var integer x;
+        var Array RAM;
+        var integer linestart;
+        var integer tmp;
+        var integer prev;
+        var integer tmpl;
+
+        let swds = (Const.SCREEN_WIDTH() * Const.CHAR_WIDTH()) / 16;
+        let to = Const.SCREEN() + ((line * Const.CHAR_HEIGHT()) * swds);
+        let y = 0;
+        while (y < Const.CHAR_HEIGHT()) {
+            let x = n;
+            while (x < swds) {
+                let linestart = to + (y*swds);
+                let tmp = RAM[linestart + x];
+                if (osh) {
+                    let tmpl = tmp & 255;
+                    if (x > 1) {
+                        let prev = RAM[((linestart + x) - n) - 1];
+                        let prev = (tmpl * 256) | (prev & 255);
+                        let RAM[((linestart + x) - n) - 1] = prev;
+                    }
+                    let tmp = tmp / 256;
+                }
+                let RAM[(linestart + x) - n] = tmp;
+                let x = x + 1;
+            }
+            let y = y + 1;
+        }
+        return;
+    }
+
+    function void shiftPrevLineCharsLeft(integer n) {
+        var boolean oddShift;
+        var integer wdShift;
+    
+        if (row = 0) {
+            return;
+        }
+        let wdShift = n / 2;
+        let oddShift = ((n&1) = 1);
+        do Display.shiftLineLeftWords(row-1, wdShift, oddShift);
+        return;
+    }
+}

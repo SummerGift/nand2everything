@@ -1,0 +1,306 @@
+/* AST Selector functions */
+class AstSel {
+
+    /* variable selectors
+     * [var_decl: declare ident type]
+     */
+    function String varName(Item varDecl) {
+        var Item item;
+        var List subItems;
+        let subItems = varDecl.getSubItems(); /* declare */
+        let subItems = subItems.getNext();    /* ident */
+        let item = subItems.get();
+        return item.getStringValue();
+    }
+
+    /* return the type of the variable
+     * [var_decl: declare ident type]
+     */
+    function integer varType(Item varDecl) {
+        var List subItems;
+        var Item item;
+        let subItems = varDecl.getSubItems(); /* declare */
+        let subItems = subItems.getNext();    /* ident */
+        let subItems = subItems.getNext();    /* type */
+        let item = subItems.get();
+        if (item.getType() = Const.RW_INTEGER()) {
+            return Const.T_INTEGER();
+        }
+        if (item.getType() = Const.RW_STRING()) {
+            return Const.T_STRING();
+        }
+        if (item.getType() = Const.RW_BOOLEAN()) {
+            return Const.T_BOOLEAN();
+        }
+        return Const.ILLEGAL();
+    }
+
+    /* returns the rest of the variable declaration
+     * [var_decl: declare ident type]
+     */
+    function List varRest(Item varDecl) {
+        var List subItems;
+        let subItems = varDecl.getSubItems(); /* declare */
+        return subItems.getNext();
+    }
+
+    /* function selectors
+     * [proc_decl: [proc_stmt: declare ( ident {ident} ) ...] ...]
+     */
+    function String procName(Item procDecl) {
+        var List subItems;
+        var Item item;
+        let subItems = procDecl.getSubItems();
+        return AstSel.procStmtName(subItems.get());
+    }
+
+    function String procStmtName(Item procStmt) {
+        var List subItems;
+        var Item item;
+        let subItems = procStmt.getSubItems(); /* declare */
+        let subItems = subItems.getNext();	   /* par_op */
+        let subItems = subItems.getNext();	   /* ident */
+        let item = subItems.get();
+        return item.getStringValue();
+    }
+
+    function integer procInBlockId(Item procDecl) {
+        var List subItems;
+        var Item item;
+        let subItems = procDecl.getSubItems();
+        let item = subItems.get(); /* proc_stmt */
+        return item.getBlockId();
+    }
+
+    function integer procDeclBlockId(Item procDecl) {
+        return procDecl.getBlockId();
+    }
+
+    /* returns function ident
+     * [proc_decl: [proc_stmt: declare ( ident {ident} ) ...] ...]
+     */
+    function Item procIdent(Item procDecl) {
+        var List subItems;
+        var Item item;
+        let subItems = procDecl.getSubItems();
+        let item = subItems.get(); /* proc_stmt */
+        let subItems = item.getSubItems();
+        while (~(item.getType() = Const.IDENT())) {
+            let subItems = subItems.getNext();
+            let item = subItems.get();
+        }
+        return subItems.get();
+    }
+
+    /* returns function args
+     * [proc_decl: [proc_stmt: declare ( ident {ident} ) ...] ...]
+     */
+    function List procArgs(Item procDecl) {
+        var List subItems;
+        var Item item;
+        let subItems = procDecl.getSubItems();
+        let item = subItems.get(); /* proc_stmt */
+        let subItems = item.getSubItems();
+        while (~(item.getType() = Const.IDENT())) {
+            let subItems = subItems.getNext();
+            let item = subItems.get();
+        }
+        return subItems.getNext();
+    }
+
+    /* returns type of a function or Const.ILLEGAL() if no type
+     * [proc_decl: [proc_stmt: declare ( ident {ident} ) [type]] ...]
+     */
+    function integer procType(Item procDecl) {
+        var List subItems;
+        var Item item;
+        let subItems = procDecl.getSubItems();
+        let item = subItems.get(); /* proc_stmt */
+        let subItems = item.getSubItems();
+        while (~(subItems = 0)) {
+            let item = subItems.get();
+            let subItems = subItems.getNext();
+        }
+        if (item.getType() = Const.RW_BOOLEAN()) {
+            return Const.T_BOOLEAN();
+        }
+        if (item.getType() = Const.RW_INTEGER()) {
+            return Const.T_INTEGER();
+        }
+        if (item.getType() = Const.RW_STRING()) {
+            return Const.T_STRING();
+        }
+        return Const.ILLEGAL();
+    }
+
+    /* returns declarations, units and end of a function
+     * [proc_decl: proc_stmt {declaration} {unit} end_stmt]
+     */
+    function List procRest(Item procDecl) {
+        var List subItems;
+        let subItems = procDecl.getSubItems(); /* proc_stmt */
+        return subItems.getNext();
+    }
+
+    /* returns block_stmt of a block
+     * [bock: block_stmt ...]
+     */
+    function Item blockStmt(Item block) {
+        var List subItems;
+        let subItems = block.getSubItems();
+        return subItems.get();
+    }
+
+    /* returns declarations, units and end of a block
+     * [block: block_stmt {declaration} {unit} end_stmt]
+     */
+    function List blockRest(Item block) {
+        var List subItems;
+        let subItems = block.getSubItems();
+        return subItems.getNext();
+    }
+
+    function List blockUnits(Item block) {
+        var List subItems;
+        var Item subItem;
+
+        let subItems = block.getSubItems(); /* stmt */
+        let subItems = subItems.getNext(); /* {decl} or {unit} */
+
+        while (~(subItems = 0)) {
+            let subItem = subItems.get();
+            if ((~(subItem.getType() = Const.PROC_DECL()))
+                     & (~(subItem.getType() = Const.VAR_DECL()))) {
+                return subItems;
+            }
+            let subItems = subItems.getNext();
+        }
+        return 0;
+    }
+
+    /* do_while_stmt = "do" "while" (call | expr) */
+    function Item doWhileCond(Item doWhile) {
+        var List subItems;
+        var Item stmt;
+        let stmt = AstSel.blockStmt(doWhile);
+        let subItems = stmt.getSubItems();	/* do */
+        let subItems = subItems.getNext();  /* while */
+        let subItems = subItems.getNext();  /* (call | expr) */
+        return subItems.get();
+    }
+
+    /* do_iter = "do" ident "=" expr "to" expr ["by" expr] */
+    function Item doIterLoopVar(Item doIter) {
+        var Item stmt;
+        var List subItems;
+        var Item subItem;
+        let stmt = AstSel.blockStmt(doIter);
+        let subItems = stmt.getSubItems(); /* "do" */
+        let subItems = subItems.getNext(); /* ident */
+        return subItems.get();
+    }
+
+    function Item doIterInitExpr(Item doIter) {
+        var Item stmt;
+        var List subItems;
+        var Item subItem;
+        let stmt = AstSel.blockStmt(doIter);
+        let subItems = stmt.getSubItems(); /* "do" */
+        let subItems = subItems.getNext(); /* ident */
+        let subItems = subItems.getNext(); /* "=" */
+        let subItems = subItems.getNext(); /* init-expr */
+        return subItems.get();
+    }
+
+    function Item doIterToExpr(Item doIter) {
+        var Item stmt;
+        var List subItems;
+        var Item subItem;
+        let stmt = AstSel.blockStmt(doIter);
+        let subItems = stmt.getSubItems(); /* "do" */
+        let subItems = subItems.getNext(); /* ident */
+        let subItems = subItems.getNext(); /* "=" */
+        let subItems = subItems.getNext(); /* init-expr */
+        let subItems = subItems.getNext(); /* "to" */
+        let subItems = subItems.getNext(); /* to-expr */
+        return subItems.get();
+    }
+
+    function Item doIterByExpr(Item doIter) {
+        var Item stmt;
+        var List subItems;
+        var Item subItem;
+        let stmt = AstSel.blockStmt(doIter);
+        let subItems = stmt.getSubItems(); /* "do" */
+        let subItems = subItems.getNext(); /* ident */
+        let subItems = subItems.getNext(); /* "=" */
+        let subItems = subItems.getNext(); /* init-expr */
+        let subItems = subItems.getNext(); /* "to" */
+        let subItems = subItems.getNext(); /* to-expr */
+        let subItems = subItems.getNext(); /* "by" */
+        if (subItems = 0) {
+            return 0;
+        }
+        let subItems = subItems.getNext(); /* by-expr */
+        return subItems.get();
+    }
+
+    function Item ifCond(Item ifStmt) {
+        var List subItems;
+        let subItems = ifStmt.getSubItems();
+        let subItems = subItems.getNext();
+        return subItems.get();
+    }
+
+    function Item elseIfCond(Item elseIfStmt) {
+        var List subItems;
+        var Item ifStmt;
+        let subItems = elseIfStmt.getSubItems();
+        let subItems = subItems.getNext();
+        let ifStmt = subItems.get();
+        return AstSel.ifCond(ifStmt);
+    }
+
+    function String endName(Item endStmt) {
+        var List subItems;
+        var Item ident;
+        let subItems = endStmt.getSubItems();
+        let subItems = subItems.getNext();
+        if (subItems = 0) {
+            return 0;
+        }
+        let ident = subItems.get();
+        return ident.getStringValue();
+    }
+
+    /* Terminal Selectors */
+    function String identName(Item ident) {
+        return ident.getStringValue();
+    }
+
+    /* Assignments: ident "=" expr */
+    function Item assignVar(Item assign) {
+        var List subItems;
+
+        let subItems = assign.getSubItems();
+        return subItems.get();
+    }
+
+    function Item assignExpr(Item assign) {
+        var List subItems;
+
+        let subItems = assign.getSubItems(); /* ident */
+        let subItems = subItems.getNext();   /* "=" */
+        let subItems = subItems.getNext();   /* expr */
+        return subItems.get();
+    }
+
+    function Item retExpr(Item ret) {
+        var List subItems;
+
+        let subItems = ret.getSubItems(); /* return */
+        let subItems = subItems.getNext();   /* expr */
+        return subItems.get();
+    }
+
+}

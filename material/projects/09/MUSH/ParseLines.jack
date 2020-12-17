@@ -1,0 +1,244 @@
+class ParseLines {
+    function Item addNode(Tokenizer tokenizer, integer type) {
+        var Item item;
+
+        /* var_decl */
+        let item = tokenizer.nextNode();
+        if (item = 0) {
+            return 0;
+        }
+        if (item.getType() = type) {
+            return item;
+        } else {
+            do tokenizer.unread(item);
+            return 0;
+        }
+    }
+
+    /* declaration =  var_decl | proc_decl  */
+    function Item parseDeclaration(Tokenizer tokenizer) {
+        var Item item;
+
+        /* var_decl */
+        let item = ParseLines.addNode(tokenizer, Const.VAR_DECL());
+        if (~(item = 0)) {
+            return item;
+        }
+
+        /* proc_decl */
+        let item = ParseLines.parseProcDecl(tokenizer);
+
+        return item;
+    }
+
+    /* unit = assignment | call | block | cond */
+    function Item parseUnit(Tokenizer tokenizer) {
+        var Item item;
+
+        /* assignment */
+        let item = ParseLines.addNode(tokenizer, Const.ASSIGN());
+        if (~(item = 0)) {
+            return item;
+        }
+
+        /* call */
+        let item = ParseLines.addNode(tokenizer, Const.CALL());
+        if (~(item = 0)) {
+            return item;
+        }
+
+        /* call */
+        let item = ParseLines.addNode(tokenizer, Const.RETURN());
+        if (~(item = 0)) {
+            return item;
+        }
+
+        /* do-block */
+        let item = ParseLines.parseDoBlock(tokenizer);
+        if (~(item = 0)) {
+            return item;
+        }
+
+        /* do-iter */
+        let item = ParseLines.parseDoIter(tokenizer);
+        if (~(item = 0)) {
+            return item;
+        }
+
+        /* do-while */
+        let item = ParseLines.parseDoWhile(tokenizer);
+        if (~(item = 0)) {
+            return item;
+        }
+
+        /* cond */
+        let item = ParseLines.parseCond(tokenizer);
+        if (~(item = 0)) {
+            return item;
+        }
+
+        return item;
+    }
+
+    /* proc/block = (proc_stmt|block_stmt) {declaration} {unit} end_stmt */
+    function Item parseBlock2(Tokenizer tokenizer, integer type,
+              integer stmtType) {
+        var Item stmt;
+        var Item decl;
+        var Item unit;
+        var Item result;
+        var String str;
+        let str = String.new(20);
+
+        let result = Item.new();
+        do result.setTerminal(false);
+        do result.setType(type);
+
+        let stmt = tokenizer.nextNode();
+        if (stmt = 0) {
+            do Display.printConstln("block2 e1");
+            do result.dispose();
+            return 0;
+        }
+
+        if (~(stmt.getType() = stmtType)) {
+            do tokenizer.unread(stmt);
+            do result.dispose();
+            return 0;
+        }
+        do result.addSubItem(stmt);
+
+
+        let decl = ParseLines.parseDeclaration(tokenizer);
+        while (~(decl = 0)) {
+            do result.addSubItem(decl);
+            let decl = ParseLines.parseDeclaration(tokenizer);
+        }
+
+        let unit = ParseLines.parseUnit(tokenizer);
+        while (~(unit = 0)) {
+            do result.addSubItem(unit);
+            let unit = ParseLines.parseUnit(tokenizer);
+        }
+
+        let stmt = tokenizer.nextNode();
+        if (stmt = 0) {
+            do result.dispose();
+            do Display.printConstln("block2 e3");
+            return 0;
+        }
+        if (~(stmt.getType() = Const.END_STMT())) {
+            do result.dispose();
+            do Display.printConstln("block2 e4");
+            return 0;
+        }
+        do result.addSubItem(stmt);
+
+        return result;
+    }
+
+    function Iterm parseProcDecl(Tokenizer tokenizer) {
+        return ParseLines.parseBlock2(tokenizer,
+                 Const.PROC_DECL(), Const.PROC_STMT());
+    }
+
+    function Iterm parseDoBlock(Tokenizer tokenizer) {
+        return ParseLines.parseBlock2(tokenizer,
+                 Const.DO_BLOCK(), Const.DO_BLOCK_STMT());
+    }
+
+    function Iterm parseDoIter(Tokenizer tokenizer) {
+        return ParseLines.parseBlock2(tokenizer,
+                 Const.DO_ITER(), Const.DO_ITER_STMT());
+    }
+
+    function Iterm parseDoWhile(Tokenizer tokenizer) {
+        return ParseLines.parseBlock2(tokenizer,
+                 Const.DO_WHILE(), Const.DO_WHILE_STMT());
+    }
+
+    function Item parseBlock(Tokenizer tokenizer) {
+        var Item result;
+        var Item tmp;
+        let result = ParseLines.parseProcDecl(tokenizer);
+        if (result = 0) {
+            let result = ParseLines.parseDoBlock(tokenizer);
+            if (result = 0) {
+                let result = ParseLines.parseDoIter(tokenizer);
+                if (result = 0) {
+                    let result = ParseLines.parseDoWhile(tokenizer);
+                }
+            }
+        }
+        let tmp = tokenizer.nextNode();
+        if (tmp = 0) {
+            if (result = 0) {
+                do Display.printConstln("block 4");
+            }
+            return result;
+        } else {
+            do Display.printConst("PARSE_BLOCK: tokenizer not empty: ");
+            do tmp.print();
+            do Display.newline();
+            do Display.printConst("PARSE_BLOCK: block=");
+            do result.print();
+            do Display.newline();
+            do tokenizer.emptyUnread();
+            return 0;
+        }
+    }
+
+    /* cond = if_stmt unit {else_if_stmt unit} [else unit] */
+    function Item parseCond(Tokenizer tokenizer) {
+        var Item ifStmt;
+        var Item unit;
+        var Item elseIfStmt;
+        var Item kw_else;
+        var Item result;
+
+        let result = Item.new();
+        do result.setTerminal(false);
+        do result.setType(Const.COND());
+
+        let ifStmt = ParseLines.addNode(tokenizer, Const.IF_STMT());
+        if (ifStmt = 0) {
+            return 0;
+        }
+        do result.addSubItem(ifStmt);
+
+        let unit = ParseLines.parseUnit(tokenizer);
+        if (unit = 0) {
+            return 0;
+        }
+
+        do result.addSubItem(unit);
+
+        let elseIfStmt = ParseLines.addNode(tokenizer, Const.ELSE_IF_STMT());
+        while (~(elseIfStmt = 0)) {
+            do result.addSubItem(elseIfStmt);
+
+            let unit = ParseLines.parseUnit(tokenizer);
+            if (unit = 0) {
+                return 0;
+            }
+            do result.addSubItem(unit);
+
+            let elseIfStmt = ParseLines.addNode(tokenizer, Const.ELSE_IF_STMT());
+        }
+
+        let kw_else = ParseLines.addNode(tokenizer, Const.KW_ELSE());
+        if (kw_else = 0) {
+            return result;
+        }
+        do result.addSubItem(kw_else);
+
+        let unit = ParseLines.parseUnit(tokenizer);
+        if (unit = 0) {
+            return 0;
+        }
+        do result.addSubItem(unit);
+
+        return result;
+    }
+
+}

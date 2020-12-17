@@ -1,0 +1,544 @@
+* Evaluator pass1 tests.
+
+** Description
+
+Tests are grouped by level of complexity.  The first tests are at the
+beginning, then they test next levels of complexity.  Each group is does not
+add a lot of additional complexity, therefore they sould be executed in
+order.
+
+** About pass1
+The purpose of the pass1 is to assign block id to variables in statements
+and procedure node reference to procedures in statements.
+
+** What must be tested
+ * The ability to tell whether an identifier is a procedure or a variable
+ * The ability to tell whether an identifier is declared
+ * The ability to search among variables and procedures defined in main block
+ as well as in subblocks, procedures and subprocedures (procedures within
+ blocks or within other procedures)
+ * The ability to assign the correct block id and procedure node to
+ identifiers
+ * The block ids should be predictable.  Each evaluation should begin with a
+ block id divisible by 100, so the last 2 digits must be predictable.
+
+** Order of tests
+ * Expressions
+ * Assignments
+ * Blocks (Do, DoWhile, DoIter)
+ * Functions
+ * Conditions
+ * Block in Functions
+ * Functions in Blocks
+ * Conditions in Blocks
+ * Conditions in Functions
+ * Blocks in Blocks
+ * Conditions in Conditions
+ * Functions in Functions
+ * 3-4 level tests
+ * Using previously defined Functions
+
+** Output format
+ * Procedure Declarations: procedure {blockId} <name> (<blockId>)[: <type]
+ * Varlable Declarations: variable <name> (<blockId>): <type>
+ * Blocks: do_block / do_while / do_iter {<blockId>}
+ * End Statement: end {<blockId>} [<name>]
+ * Cond: if / else / else-if
+ * Identifiers:
+    - procedures: <name>: proc {<blockId>} (<procedure blockId>) <type>
+    - variables: <name>: var (<variable blockId>) <type>
+    - undefined: <name>: undef
+
+** Tests
+*** Expressions
+**** expr1
+MUSH>5
+
+**** expr2
+MUSH>a
+a: undef
+
+**** expr3
+MUSH>declare a integer
+varibale a (0): integer
+MUSH>a
+a: var (0) integer
+MUSH>a+a
+a: var (0) integer
+a: var (0) integer
+
+**** expr4
+MUSH>a+b
+a: var (0) integer
+b: undef
+MUSH>declare b boolean
+variable b (0): boolean
+MUSH>b+2*a
+b: var (0) boolean
+a: var (0) integer
+
+*** Assignments
+**** assign1
+MUSH>c=a+b
+c: undef
+a: var (0) integer
+b: var (0) boolean
+
+**** assign2
+MUSH>declare c integer
+variable c (0): integer
+MUSH>c=2*(a-1)/a
+c: var (0) integer
+a: var (0) integer
+a: var (0) integer
+
+*** Procedures
+**** proc1
+MUSH>declare (f)
+     end f
+procedure {1} f (0)
+end {1} f
+MUSH>f
+f: proc {1} (0)
+
+**** proc2
+MUSH>declare (g a) boolean
+       declare a integer
+       return not a > c
+     end g
+procedure {2} g (0): boolean
+variable a (2): integer
+a: var (2) integer
+c: var (0) integer
+end {2} g
+MUSH>g a
+g: proc (0) boolean
+a: var (0) integer
+
+**** proc3
+MUSH>declare (h x) string
+       declare x integer
+       declare y integer
+       y=17
+       g (h (x+y))
+       return 'ok'
+     end
+procedure {3} h (0): string
+variable x (3): integer
+variable y (3): integer
+y: var (3) integer
+g: proc {2} (0) boolean
+h: proc {3} (0) string
+x: var (3) integer
+y: var (3) integer
+end {3} h
+MUSH>declare s string
+variable s (0): string
+MUSH>s = (h (f 15) + a)
+s: var (0) string
+h: proc {3} (0) string
+f: proc {1} (0) integer
+a: var (0) integer
+
+*** Blocks (Do, DoWhile, DoIter)
+**** do_block
+MUSH>declare a integer
+variable a (0): integer
+MUSH>declare b integer
+variable b (0): integer
+MUSH>a=5
+a: var (0) integer
+MUSH>b=50
+b: var (0) integer
+MUSH>do
+       declare b integer
+       b=a+10
+     end
+do_block {1}
+variable b (1): integer
+b: var (1) integer
+a: var (0) integer
+end {1}
+MUSH>b=a+1
+b: var (0) integer
+a: var (0) integer
+
+**** do_while
+MUSH>declare d integer
+variable d (0): integer
+MUSH>d = 5
+d: var (0): integer
+MUSH>do while d > 0
+       d=d-1
+     end
+do_while {1}
+d: var (0) integer
+d: var (0) integer
+d: var (0) integer
+end {1}
+
+**** do_iter1
+MUSH>declare x integer
+variable x (0): integer
+MUSH>declare a integer
+variable a (0): integer
+MUSH>a=0
+a: var (0) integer
+MUSH>do x = 5 to 10
+       a = a + x
+     end
+do_iter {1}
+x: var (0) integer
+a: var (0) integer
+a: var (0) integer
+x: var (0) integer
+end {1}
+
+**** do_iter2
+MUSH>declare c integer
+variable c (0): integer
+MUSH>declare x integer
+variable x (0): integer
+MUSH>x=2
+x: var (0) integer
+MUSH>c=1
+c: var (0) integer
+MUSH>do c = x * 2 to 40 by 3
+       declare a integer
+       a=c*x
+       x=x+1
+     end
+do_iter {1}
+c: var (0) integer
+x: var (0) integer
+variable a (1): integer
+a: var (1) integer
+c: var (0) integer
+x: var (0) integer
+x: var (0) integer
+x: var (0) integer
+end {1}
+
+*** Conditions
+**** cond1
+MUSH>declare a integer
+variable a (0): integer
+MUSH>declare b integer
+variable b (0): integer
+MUSH>declare c integer
+variable c (0): integer
+MUSH>if a > b then
+if
+a: var (0) integer
+b: var (0) integer
+MUSH>c=a
+c: var (0) integer
+a: var (0) integer
+MUSH>else
+else
+MUSH>c=b
+c: var (0) integer
+b: var (0) integer
+
+**** cond2
+MUSH>declare a integer
+variable a (0): integer
+MUSH>if true then
+if
+MUSH>a=0
+a: var (0) integer
+MUSH>else if a < 3 then
+else
+if
+a: var (0) integer
+MUSH>a=1
+a: var (0) integer
+MUSH>else
+else
+MUSH>a=2
+a: var (0) integer
+
+*** Block in Functions
+**** bif1
+MUSH>declare a integer
+variable a (0): integer
+MUSH>declare (f)
+       declare b integer
+       do
+         declare c integer
+         b=a+c
+       end
+     end f
+procedure {1} f (0)
+variable b (1): integer
+do_block {2}
+variable c (2): integer
+b: var (1) integer
+a: var (0) integer
+c: var (2) integer
+end {2}
+end {1} f
+MUSH>f
+f: proc {1} (0)
+
+**** bif2
+MUSH>declare a integer
+variable a (0): integer
+MUSH>declare (mult a b) integer
+       declare a integer
+       declare b integer
+       declare result integer
+       result = 0
+       do while b > 0
+         result = result + a
+         b = b - 1
+       end
+       return result
+     end mult
+procedure {1} mult (0): integer
+variable a (1): integer
+variable b (1): integer
+variable result (1): integer
+result: var (1) integer
+do_while {2}
+b: var (1) integer
+result: var (1) integer
+result: var (1) integer
+a: var (1) integer
+b: var (1) integer
+b: var (1) integer
+end {2}
+result: var (1) integer
+end {1} mult
+MUSH>a=7
+a: var (0) integer
+MUSH>mult 3 a
+mult: proc {1} (0) integer
+a: var (0) integer
+
+**** bif3
+MUSH>declare x integer
+variable x (0): integer
+MUSH>declare y integer
+variable y (0): integer
+MUSH>declare n integer
+variable n (0): integer
+MUSH>x = 5
+x: var (0) integer
+MUSH>y = 10
+y: var (0) integer
+MUSH>declare (f) integer
+       declare i integer
+       declare res integer
+       res = 0
+       do i = x to y
+         res = 2 * res
+       end
+       return res
+     end f
+procedure {1} f (0): integer
+variable i (1): integer
+variable res (1): integer
+res: var (1) integer
+do_iter {2}
+i: var (1) integer
+x: var (0) integer
+y: var (0) integer
+res: var (1) integer
+res: var (1) integer
+end {2}
+res: var (1) integer
+end {1} f
+MUSH>n = f
+n: var (0) integer
+f: proc {1} (0) integer
+
+*** Functions in Blocks
+**** fubl1
+MUSH>do
+       declare a integer
+       declare (f)
+         a=3
+       end f
+       f
+       a
+     end
+do_block {1}
+variable a (1): integer
+procedure {2} f (0)
+a: var (1): integer
+end {2} f
+f: proc {2} (1)
+v: var (1): integer
+end {1}
+MUSH>f
+f: undef
+MUSH>a
+a: undef
+
+**** fubl2
+MUSH>declare i integer
+variable i (0): integer
+MUSH>declare a integer
+variable a (0): integer
+MUSH>a = 0
+a: var (0)integer 
+MUSH>do i = 1 to 5
+       declare (f) integer
+         if a mod i = 3 then
+           a=a+1
+         return a
+       end f
+       a = f
+     end
+do_iter {1}
+i: var (0) integer
+procedure {2} f (1): integer
+if
+a: var (0) integer
+i: var (0) integer
+a: var (0) integer
+a: var (0) integer
+a: var (0) integer
+end {2} f
+a: var (0) integer
+f: proc {2} integer
+end {1}
+
+*** Conditions in Blocks
+MUSH>declare a integer
+variable a (0): integer
+MUSH>a=0
+a: var (0) integer
+MUSH>do while a < 10
+MUSH>declare b integer
+MUSH>b=0
+       if (a + b) mod 2 = 0 then
+         b = b + a
+       else
+         b = b *a
+       a = a + 1
+     end
+do_while {1}
+variable b (1): integer
+if
+a: var (0) integer
+b: var (1) integer
+b: var (1) integer
+b: var (1) integer
+a: var (0) integer
+else
+b: var (1) integer
+b: var (1) integer
+a: var (0) integer
+a: var (0) integer
+a: var (0) integer
+end {1}
+
+*** Conditions in Functions
+MUSH>declare (fact n) integer
+       declare n integer
+       if n < 1 then
+         return 1
+       else
+         return n * (fact (n - 1))
+     end fact
+procedure {1} fact (0): integer
+variable n (1): integer
+if
+n: var (1) integer
+else
+n: var (1) integer
+fact: proc {1} (0) integer
+n: var (1) integer
+end {1} fact
+MUSH>declare x integer
+variable x (0): integer
+MUSH>x = 7
+x: var (0) integer
+MUSH>fact x
+fact: proc {1} (0) integer
+x: var (0) integer
+
+*** Blocks in Blocks
+MUSH>declare a integer
+variable a (0): integer
+MUSH>do
+       declare b integer
+       do
+         declare c integer
+         a = b + c
+       end
+     end
+do_block {1}
+variable b (1): integer
+do_block {1}
+variable c (2): integer
+a: var (0) integer
+b: var (1) integer
+c: var (2) integer
+end {2}
+end {1}
+MUSH>a = b + c
+a: var (0) integer
+b: undef
+c: undef
+
+*** Conditions in Conditions
+MUSH>declare a integer
+variable a (0): integer
+MUSH>declare b integer
+variable b (0): integer
+MUSH>a = 1
+a: var (0) integer
+MUSH>b = 2
+b: var (0) integer
+MUSH>if a > b then
+if
+a: var (0) integer
+b: var (0) integer
+MUSH>if b = 0 then
+if
+b: var (0) integer
+MUSH>a = b
+a: var (0) integer
+b: var (0) integer
+MUSH>else if b < a then
+else
+if
+b: var (0) integer
+a: var (0) integer
+MUSH>b = a
+b: var (0) integer
+a: var (0) integer
+MUSH>else
+else
+MUSH>b = 0
+b: var (0) integer
+MUSH>else
+MUSH>b = a
+b: var (0) integer
+a: var (0) integer
+
+*** Functions in Functions
+MUSH>declare (test)
+       declare x integer
+       declare (test2)
+         declare n integer
+         x = x + n
+       end test2
+       test2 x
+     end test
+procedure {1} test (0)
+variable x (1): integer
+procedure {2} test (1)
+variable n (2): integer
+x: var (1) integer
+x: var (1) integer
+n: var (2) integer
+end {2} test2
+test2: proc {2} (1)
+end {1} test
+x: var (1) integer
+MUSH>test
+test: proc {1} (0)

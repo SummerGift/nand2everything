@@ -1,0 +1,287 @@
+class Const {
+    /* Display Constants */
+    function integer SCREEN_HEIGHT() {
+        return 23;
+    }
+
+    function integer SCREEN_WIDTH() {
+        return 64;
+    }
+
+    function integer SCREEN() {
+        return 16384;
+    }
+
+    function integer CHAR_HEIGHT() {
+        return 11;
+    }
+
+    function integer CHAR_WIDTH() {
+        return 8;
+    }
+
+    function integer MAX_LINE() {
+        return Const.SCREEN_WIDTH() * Const.SCREEN_HEIGHT();
+    }
+
+    /* Keyword Constants */
+    function integer KW_DECLARE() {
+        return 1000;
+    }
+
+    function integer KW_DO() {
+        return 1001;
+    }
+
+    function integer KW_WHILE() {
+        return 1002;
+    }
+
+    function integer KW_IF() {
+        return 1003;
+    }
+
+    function integer KW_THEN() {
+        return 1004;
+    }
+
+    function integer KW_ELSE() {
+        return 1005;
+    }
+
+    function integer KW_END() {
+        return 1006;
+    }
+
+    function integer KW_RETURN() {
+        return 1007;
+    }
+
+    function integer KW_BY() {
+        return 1008;
+    }
+
+    function integer KW_TO() {
+        return 1009;
+    }
+
+    function integer KW_AND() {
+        return 1010;
+    }
+
+    function integer KW_OR() {
+        return 1011;
+    }
+
+    function integer KW_NOT() {
+        return 1012;
+    }
+
+    function integer KW_MOD() {
+        return 1013;
+    }
+
+    function integer KW_SET() {
+        return 1017;
+    }
+
+    /* reseved words */
+    function integer RW_INTEGER() {
+        return 1020;
+    }
+
+    function integer RW_STRING() {
+        return 1030;
+    }
+
+    function integer RW_BOOLEAN() {
+        return 1040;
+    }
+
+    /* character constants */
+    function integer CH_PAROP() {
+        return 40;
+    }
+
+    function integer CH_PARCL() {
+        return 41;
+    }
+
+    function integer CH_COMMA() {
+        return 44;
+    }
+
+    function integer CH_PLUS() {
+        return 43;
+    }
+
+    function integer CH_MINUS() {
+        return 45;
+    }
+
+    function integer CH_SLASH() {
+        return 47;
+    }
+
+    function integer CH_STAR() {
+        return 42;
+    }
+
+    function integer CH_GREATER() {
+        return 62;
+    }
+
+    function integer CH_LOWER() {
+        return 60;
+    }
+
+    function integer CH_EQUALS() {
+        return 61;
+    }
+
+    function integer CH_TAB() {
+        return 9;
+    }
+
+    function integer CH_DOLLAR() {
+        return 36;
+    }
+
+    function integer CH_SPACE() {
+        return 32;
+    }
+
+    function integer CH_QUOTE() {
+        return 39;
+    }
+
+    /* terminal constants */
+    function integer IDENT() {
+        return 500;
+    }
+
+    /* type of data values */
+    function integer T_PROCEDURE() {
+        return 1200;
+    }
+
+    function integer T_INTEGER() {
+        return 1205;
+    }
+
+    function integer T_STRING() {
+        return 1210;
+    }
+
+    function integer T_BOOLEAN() {
+        return 1220;
+    }
+
+    /* boolean constants */
+    function integer B_TRUE() {
+        return 1230;
+    }
+
+    function integer B_FALSE() {
+        return 1240;
+    }
+
+    /* nonterminals */
+    function integer VAR_DECL() {
+        return 7000;
+    }
+
+    function integer PROC_STMT() {
+        return 7010;
+    }
+
+    function integer PROC_DECL() {
+        return 7020;
+    }
+
+    function integer IF_STMT() {
+        return 7030;
+    }
+
+    function integer ELSE_IF_STMT() {
+        return 7040;
+    }
+
+    function integer COND() {
+        return 7050;
+    }
+
+    function integer DO_BLOCK_STMT() {
+        return 7060;
+    }
+
+    function integer DO_BLOCK() {
+        return 7070;
+    }
+
+    function integer DO_WHILE_STMT() {
+        return 7080;
+    }
+
+    function integer DO_WHILE() {
+        return 7090;
+    }
+
+    function integer DO_ITER_STMT() {
+        return 7100;
+    }
+
+    function integer DO_ITER() {
+        return 7110;
+    }
+
+    function integer ASSIGN() {
+        return 7120;
+    }
+
+    function integer END_STMT() {
+        return 7130;
+    }
+
+    function integer RETURN() {
+        return 7140;
+    }
+
+    function integer REL_OP() {
+        return 7150;
+    }
+
+    function integer EXPR() {
+        return 7200;
+    }
+
+    function integer LOG_EXPR() {
+        return 7300;
+    }
+
+    function integer ARITHM() {
+        return 7400;
+    }
+
+    function integer TERM() {
+        return 7500;
+    }
+
+    function integer CALL() {
+        return 7600;
+    }
+
+    function integer FACTOR() {
+        return 7700;
+    }
+
+    /* other values */
+    function integer ILLEGAL() {
+        return -1;
+    }
+
+    function integer QUIT() {
+        return 1;
+    }
+
+}

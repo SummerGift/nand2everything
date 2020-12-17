@@ -1,0 +1,491 @@
+/* Help loop and help contents */
+class Help {
+
+    function void loop() {
+        var String line;
+        var boolean valid;
+
+        do Display.newline();
+        do Help.printTopics();
+        do Display.printConst("HELP>");
+        let line = Display.readln();
+        while (line.length() > 0) {
+            let valid = false;
+            /* help */
+            if (Tools.stringEqConst(line, "help")) {
+                do Help.printHelp();
+                let valid = true;
+            }
+
+            /* list */
+            if (Tools.stringEqConst(line, "list")) {
+                do Help.printList();
+                let valid = true;
+            }
+
+            /* type */
+            if (Tools.stringEqConst(line, "type")) {
+                do Help.printType();
+                let valid = true;
+            }
+
+            /* about */
+            if (Tools.stringEqConst(line, "about")) {
+                do Help.printAbout();
+                let valid = true;
+            }
+
+            /* variables */
+            if (Tools.stringEqConst(line, "var")) {
+                do Help.printVar();
+                let valid = true;
+            }
+
+            /* assignments */
+            if (Tools.stringEqConst(line, "assign")) {
+                do Help.printAssign();
+                let valid = true;
+            }
+
+            /* integer expressions */
+            if (Tools.stringEqConst(line, "integer")) {
+                do Help.printInteger();
+                let valid = true;
+            }
+
+            /* boolean expressions */
+            if (Tools.stringEqConst(line, "boolean")) {
+                do Help.printBoolean();
+                let valid = true;
+            }
+
+            /* string expressions */
+            if (Tools.stringEqConst(line, "string")) {
+                do Help.printString();
+                let valid = true;
+            }
+
+            /* calls */
+            if (Tools.stringEqConst(line, "call")) {
+                do Help.printCall();
+                let valid = true;
+            }
+
+            /* conditions */
+            if (Tools.stringEqConst(line, "cond")) {
+                do Help.printCond();
+                let valid = true;
+            }
+
+            /* do blocks */
+            if (Tools.stringEqConst(line, "doblock")) {
+                do Help.printDoBlock();
+                let valid = true;
+            }
+
+            /* do while blocks */
+            if (Tools.stringEqConst(line, "dowhile")) {
+                do Help.printDoWhile();
+                let valid = true;
+            }
+
+            /* do iter blocks */
+            if (Tools.stringEqConst(line, "doiter")) {
+                do Help.printDoIter();
+                let valid = true;
+            }
+
+            /* procedures */
+            if (Tools.stringEqConst(line, "proc")) {
+                do Help.printProc();
+                let valid = true;
+            }
+
+            if (Tools.stringEqConst(line, "clear")) {
+                do Help.printClear();
+                let valid = true;
+            }
+
+            if (Tools.stringEqConst(line, "delete")) {
+                do Help.printDelete();
+                let valid = true;
+            }
+
+            if (Tools.stringEqConst(line, "quit")) {
+                do Help.printQuit();
+                let valid = true;
+            }
+
+            /* invalid input */
+            if (~valid) {
+                do Help.printInvalid(line);
+            }
+
+            do Display.printConst("HELP>");
+            do line.dispose();
+            let line = Display.readln();
+        }
+        return;
+    }
+
+    function void printTopics() {
+        do Display.printConstln("Topics available:");
+        do Display.newline();
+        do Display.printConstln("type        var         cond");
+        do Display.printConstln("list        integer     doblock");
+        do Display.printConstln("clear       boolean     dowhile");
+        do Display.printConstln("delete      string      doiter");
+        do Display.printConstln("help        assign      proc");
+        do Display.printConstln("quit        call        about");
+        do Display.newline();
+        return;
+    }
+
+    function void printHelp() {
+        do Display.newline();
+        do Display.printConstln("  Displays a list of topics and information");
+        do Display.printConstln("  for MUSH commands and environment.");
+        do Display.newline();
+        return;
+    }
+
+    function void printList() {
+        do Display.newline();
+        do Display.printConstln("  Displays the list of available variables");
+        do Display.printConstln("  and procedures.");
+        do Display.newline();
+        return;
+    }
+
+    function void printType() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      type <expression>");
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  Evaluates the expression and displays");
+        do Display.printConstln("  its value.");
+        do Display.newline();
+        return;
+    }
+
+    function void printAbout() {
+        do Display.newline();
+        do Display.printConstln("  MUSH (Mediocre Unexciting Shell) is a");
+        do Display.printConstln("  small shell program written in Jack");
+        do Display.printConstln("  programming language for the Coursera");
+        do Display.printConstln("  course \"Nand To Tetris II\".");
+        do Display.newline();
+        do Display.printConstln("  It was started in December 2017.  It");
+        do Display.printConstln("  can evaluate and print simple");
+        do Display.printConstln("  expressions.");
+        do Display.newline();
+        do Display.printConstln("  This current version is for the March 04 ");
+        do Display.printConstln("  2018 deadline.");
+        do Display.newline();
+        return;
+    }
+
+    /* How to declare variables */
+    function void printVar() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      declare <identifier name> <type>");
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  Identifiers can contain lowercase letters,");
+        do Display.printConstln("  numbers, and the dollar sign.  They must");
+        do Display.printConstln("  start with a lowercase letter.  The ");
+        do Display.printConstln("  dollar sign is not significant.");
+        do Display.newline();
+        do Display.printConstln("  The type can be integer, boolean, and");
+        do Display.printConstln("  string.  Integers are signed 16-bit");
+        do Display.printConstln("  integers.  Strings are sequences of");
+        do Display.printConstln("  single-byte characters.  Booleans are");
+        do Display.printConstln("  variables which can only contain");
+        do Display.printConstln("  predefined constants true and false.");
+        do Display.newline();
+        do Display.printConstln("  Example:");
+        do Display.newline();
+        do Display.printConstln("      declare s string");
+        do Display.newline();
+        return;
+    }
+
+    /* Assignments and procedure calls */ 
+    function void printAssign() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      <idntifier> = <expression>");
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  The expression must return the result of");
+        do Display.printConstln("  the same type as the variable.  It can");
+        do Display.printConstln("  be a literal, a variable or a procedure");
+        do Display.printConstln("  call.");
+        do Display.newline();
+        do Display.printConstln("  Examples:");
+        do Display.newline();
+        do Display.printConstln("      MUSH>i = 4 + a");
+        do Display.printConstln("      MUSH>name = 'Talon'");
+        do Display.printConstln("      MUSH>must$continue = false");
+        do Display.printConstln("      MUSH>j = 4 + (max a b*b)");
+        do Display.newline();
+        return;
+    }
+
+    function void printInteger() {
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  Integer expressions are made from integer");
+        do Display.printConstln("  operators (+, -, *, /, mod), integer");
+        do Display.printConstln("  literals, variables containing integer ");
+        do Display.printConstln("  values and procedure that return integers.");
+        do Display.newline();
+        do Display.printConstln("  Examples:");
+        do Display.newline();
+        do Display.printConstln("      5 - 6");
+        do Display.printConstln("      -5*a - (max d (-f))");
+        do Display.newline();
+        return;
+    }
+
+    function void printBoolean() {
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  Boolean expressions can be boolean");
+        do Display.printConstln("  literals (true and false), variables");
+        do Display.printConstln("  containing boolean values, procedure");
+        do Display.printConstln("  calls, that return boolean values.  Also");
+        do Display.printConstln("  expressions containing special operators");
+        do Display.printConstln("  return boolean values:");
+        do Display.newline();
+        do Display.printConstln("  a. Relational expressions:");
+        do Display.printConstln("      <int expr> <rel operator> <int expr>");
+        do Display.printConstln("  Relational operators can be");
+        do Display.printConstln("      <, >, =, <=, >= or <>");
+        do Display.newline();
+        do Display.printConstln("  b. Logical expressions:");
+        do Display.printConstln("      [not] <bool> {<bool op> <bool>}");
+        do Display.printConstln("  Boolean operators can be and and or.");
+        do Display.newline();
+        do Display.printConstln("  Relational expressions are evaluated");
+        do Display.printConstln("  before logical expressions.");
+        do Display.newline();
+        return;
+    }
+
+    function void printString() {
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  String exressions can be string literals,");
+        do Display.printConstln("  like 'str', 'r', '', 'a''a', where the");
+        do Display.printConstln("  sequence of two qoutes is evaluated as a");
+        do Display.printConstln("  single quote, variables, containing a");
+        do Display.printConstln("  value, or procedure calls that return");
+        do Display.printConstln("  strings.");
+        do Display.newline();
+        return;
+    }
+
+    /* Procedure calls */
+    function void printCall() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      <idntifier> [<argument expressions>]");
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  There are two kinds of procedures: which");
+        do Display.printConstln("  return a value and those who don't.");
+        do Display.newline();
+        do Display.printConstln("  If a procedure doesn't return a value, it");
+        do Display.printConstln("  cannot be used inside an expression.");
+        do Display.printConstln("  If a procedure returns a value and");
+        do Display.printConstln("  requires arguments, then it must be used");
+        do Display.printConstln("  inside parentheses.");
+        do Display.newline();
+        do Display.printConstln("  Examples:");
+        do Display.newline();
+        do Display.printConstln("      MUSH>type (sum 4 5)");
+        do Display.printConstln("      MUSH>a=40*(f 4)");
+        do Display.printConstln("      MUSH>ff 800");
+        do Display.newline();
+        return;
+    }
+
+    /* if, else and else-if */
+    function void printCond() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      if <conditional expression> then");
+        do Display.printConstln("        <block or statement>");
+        do Display.printConstln("    { else if <conditional expression> then");
+        do Display.printConstln("        <block or statement> }");
+        do Display.printConstln("    [ else");
+        do Display.printConstln("        <block or statement> ]");  
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  These statements evaluate conditional");
+        do Display.printConstln("  expression and execute appropriate block");
+        do Display.printConstln("  or statement.  In case of several if");
+        do Display.printConstln("  statements and a single else, the block");
+        do Display.printConstln("  or statement following the else is");
+        do Display.printConstln("  execute if the value of the expression");
+        do Display.printConstln("  of the last if before it evaluates to");
+        do Display.printConstln("  false.");
+        do Display.newline();
+        return;
+    }
+
+    function void printDoBlock() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      do");
+        do Display.printConstln("      { <var or proc declaration> }");
+        do Display.printConstln("      { <statement> }");
+        do Display.printConstln("      end");
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  The do block creates and executes an");
+        do Display.printConstln("  evaluation block.  It can contain");
+        do Display.printConstln("  variable and procedure declarations,");
+        do Display.printConstln("  which are local to the do block.");
+        do Display.newline();
+        do Display.printConstln("  Example:");
+        do Display.newline();
+        do Display.printConstln("      do");
+        do Display.printConstln("        declare a integer");
+        do Display.printConstln("        a=1");
+        do Display.printConstln("        type a");
+        do Display.printConstln("      end");
+        do Display.newline();
+        return;
+    }
+
+    function void printDoWhile() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      do while <condition expression>");
+        do Display.printConstln("      { <var or proc declaration> }");
+        do Display.printConstln("      { <statement> }");
+        do Display.printConstln("      end");
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  Loop block that loops while the loop");
+        do Display.printConstln("  condition expression evaluates to true.");
+        do Display.newline();
+        do Display.printConstln("  Example:");
+        do Display.newline();
+        do Display.printConstln("      do while a < 10");
+        do Display.printConstln("        type a");
+        do Display.printConstln("        a = a + 1");
+        do Display.printConstln("      end");
+        do Display.newline();
+        return;
+    }
+
+    function void printDoIter() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      do <ident>=<e> to <e> [by <e>]");
+        do Display.printConstln("      { <var or proc declaration> }");
+        do Display.printConstln("      { <statement> }");
+        do Display.printConstln("      end");
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  The iterative do, it assigns the value to");
+        do Display.printConstln("  a variable and adds a value to it until");
+        do Display.printConstln("  it reaches its final value.  The");
+        do Display.printConstln("  step is not required and is 1 by default.");
+        do Display.newline();
+        return;
+    }
+
+    function void printProc() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      declare (<ident> {<param>}) [<type>]");
+        do Display.printConstln("      { <var or proc declaration> }");
+        do Display.printConstln("      { <statement> }");
+        do Display.printConstln("      end");
+        do Display.newline();
+        do Display.printConstln("  Explanation:");
+        do Display.newline();
+        do Display.printConstln("  The declaration of a procedure.  Its");
+        do Display.printConstln("  parameters must be declared the same way");
+        do Display.printConstln("  as normal variables.");
+        do Display.newline();
+        do Display.printConstln("  Example:");
+        do Display.newline();
+        do Display.printConstln("      declare (fib n) integer");
+        do Display.printConstln("        declare n integer");
+        do Display.printConstln("        if n < 2 then");
+        do Display.printConstln("          return n");
+        do Display.printConstln("        else");
+        do Display.printConstln("          return (fib n-1) + (fib n-2)");
+        do Display.printConstln("      end");
+        do Display.newline();
+        return;
+    }
+
+    function void printClear() {
+        do Display.newline();
+        do Display.printConstln("  The \"clear\" command erases the screen");
+        do Display.printConstln("  and positions the cursor at posotion 0,0.");
+        do Display.newline();
+        return;
+    }
+
+    function void printDelete() {
+        do Display.newline();
+        do Display.printConstln("  Syntax:");
+        do Display.newline();
+        do Display.printConstln("      delete '<identifier name>'");
+        do Display.newline();
+        do Display.printConstln("  Deletes a variable in current block.");
+        do Display.printConstln("  Needed when the name for a variable is");
+        do Display.printConstln("  already in use in current block.");
+        do Display.newline();
+        return;
+    }
+
+    function void printQuit() {
+        do Display.newline();
+        do Display.printConstln("  The \"quit\" commant terminates the");
+        do Display.printConstln("  execution of MUSH.");
+        do Display.newline();
+        return;
+    }
+
+    function void printInvalid(String invalidTopic) {
+        do Display.printConstln("Topic:");
+        do Display.newline();
+        do Display.printConst("  ");
+        do Display.printString(invalidTopic);
+        do Display.newline();
+        do Display.newline();
+        do Display.printConstln("Not found");
+        do Display.newline();
+        return;
+    }
+}

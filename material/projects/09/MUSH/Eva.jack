@@ -1,0 +1,1187 @@
+class Eva {
+    /* 2-pass Evaluator
+     * 1st pass: determine the block for each variable
+                 link identifier objects to function if is a function
+     * 2nd pass: execute the item
+     *
+     * The evaluator needs to keep the variable values, they are stored
+     * in object fields.
+     */
+
+    field IdentMap identMap;
+
+    field integer lastBlockId;
+    field integer currBlockId;
+
+    field List blockIdStack;
+
+    method void nextBlockId() {
+        let lastBlockId = lastBlockId + 1;
+        let blockIdStack = blockIdStack.prepend(lastBlockId);
+        let currBlockId = lastBlockId;
+        return;
+    }
+
+    method void popBlockId() {
+        let blockIdStack = blockIdStack.deleteFirst();
+        let currBlockId = blockIdStack.get();
+        return;
+    }
+
+    constructor Eva new() {
+        let identMap = IdentMap.new();
+        let lastBlockId = 0;
+        let blockIdStack = List.new(lastBlockId);
+        let currBlockId = 0;
+
+        /* put built in procedures in identMap */
+        do identMap.putBuiltIn("type", 0, Const.T_PROCEDURE());
+        do identMap.putBuiltIn("list", 0, Const.T_PROCEDURE());
+        do identMap.putBuiltIn("quit", 0, Const.T_PROCEDURE());
+        do identMap.putBuiltIn("help", 0, Const.T_PROCEDURE());
+        do identMap.putBuiltIn("clear", 0, Const.T_PROCEDURE());
+        do identMap.putBuiltIn("delete", 0, Const.T_PROCEDURE());
+
+        return this;
+    }
+
+    /* returns true if variable already declared in ident map
+     * + print error message
+     */
+    function boolean checkDeclared(IdentMap identMap,
+      String name, integer blockId) {
+        var Element element;
+        let element = identMap.get(name, blockId);
+        if (element = 0) {
+            return false;
+        } else {
+            do Display.printConst("Identifier with name ");
+            do Display.printString(name);
+            do Display.printConstln(" is already declared in the block.");
+            return true;
+        }
+    }
+
+    method boolean checkProcName(String procName) {
+        return ~(Eva.checkDeclared(identMap, procName, 0));
+    }
+
+    /* pass1: variable declaration: save in block id in vartable
+     *        procedure declaration: save in block id in vartable
+     *                               save in identmap
+     *        variable in code: set block id from vartable
+     *        procedure in code: set procedure node from identmap
+     * !! when identifier in code: first find block id
+     *                             then check identmap (present => proc)
+     *                             if procedure: link occurence to node
+     & return value: true on success, false on error
+     */
+    method boolean pass1rec(VarTable varTable, Item item) {
+        var String identName;
+        var String varName;
+        var String procName;
+        var integer identBlockId;
+        var integer endBlockId;
+        var integer tmp;
+        var integer type;
+        var List subItems;
+        var List procArgs;
+        var Item procIdent;
+        var Item stmt;
+        var Item arg;
+        var Item subItem;
+
+        if (item.isTerminal()) {
+            if (item.getType() = Const.IDENT()) {
+                let identName = AstSel.identName(item);
+                let identBlockId = varTable.get(identName);
+                if (identBlockId = (-1)) {
+                    if (~(identMap.get(identName, 0) = 0)) {
+                        do item.setBlockId(0);
+                    } else {
+                        do item.setBlockId(-1);
+                        do Display.printConst("Identifier ");
+                        do Display.printString(identName);
+                        do Display.printConstln(" undefined.");
+                        return false;
+                    }
+                } else {
+                    do item.setBlockId(identBlockId);
+                }
+            }
+            return true;
+        }
+
+        if (item.getType() = Const.VAR_DECL()) {
+            let varName = AstSel.varName(item);
+            let type = AstSel.varType(item);
+            if (Eva.checkDeclared(identMap, varName, currBlockId)) {
+                return false;
+            }
+            do pass1rec(varTable, AstSel.varRest(item));
+            do identMap.putVar(varName, currBlockId, type);
+            do varTable.put(varName, currBlockId);
+            do item.setBlockId(currBlockId);
+            return true;
+        }
+
+        if (item.getType() = Const.PROC_DECL()) {
+            let procName = AstSel.procName(item);
+            if (Eva.checkDeclared(identMap, procName, currBlockId)) {
+                return false;
+            }
+            do varTable.put(procName, currBlockId);
+            do identMap.putProc(procName, currBlockId, item);
+            let procIdent = AstSel.procIdent(item);
+            do procIdent.setBlockId(currBlockId);
+            do item.setBlockId(currBlockId);
+            do nextBlockId();
+            let stmt = AstSel.blockStmt(item);
+            do stmt.setBlockId(currBlockId);
+            let procArgs = AstSel.procArgs(item);
+            while (~(procArgs = 0)) {
+                let arg = procArgs.get();
+                do arg.setBlockId(currBlockId);
+                let procArgs = procArgs.getNext();
+            }
+            let subItems = AstSel.procRest(item);
+        } else {
+            if ((item.getType() = Const.DO_BLOCK())
+              | ((item.getType() = Const.DO_ITER())
+                 | (item.getType() = Const.DO_WHILE()))) {
+                do pass1rec(varTable, AstSel.blockStmt(item));
+                do item.setBlockId(currBlockId);
+                do nextBlockId();
+                let subItems = AstSel.blockRest(item);
+            } else {
+                do item.setBlockId(currBlockId);
+                let subItems = item.getSubItems();
+            }
+        }
+        while (~(subItems = 0)) {
+            if (~pass1rec(varTable, subItems.get())) {
+                return false;
+            }
+            let subItems = subItems.getNext();
+        }
+        if (item.getType() = Const.END_STMT()) {
+            do item.setBlockId(currBlockId);
+            do varTable.popBlock(currBlockId);
+            do popBlockId();
+        }
+        return true;
+    }
+
+    /* return true on success, false on error */
+    method boolean pass1(Item item) {
+        var boolean result;
+        var VarTable varTable;
+        let varTable = VarTable.new();
+        let result = pass1rec(varTable, item);
+        do varTable.dispose();
+        return result;
+    }
+
+    /* check whether value is a valid value object */
+    function boolean chkVal(Value value) {
+        if (value = 0) {
+            return false;
+        }
+        if (value = Const.QUIT()) {
+            return false;
+        }
+        if (value = Const.ILLEGAL()) {
+            return false;
+        }
+        return true;
+    }
+
+    /* executes a procedure call and returns a value if value returned
+     * item can be ident OR [call: ident {param}]
+     */
+    method Value execCall(Item item) {
+        var Item ident;
+        var List subItems;
+        var Item subItem;
+        var List paramValues;
+        var Value paramValue;
+        var String name;
+        var integer blockId;
+        var Element element;
+        var Item procItem;
+        var List procRest; /* declarations and then units of procedure */
+        var List paramIdents;
+        var boolean hasMoreDeclarations;
+        var Value unitValue;
+        var integer procType;
+
+        if (item.getType() = Const.IDENT()) {
+            let ident = item;
+            let paramValues = 0;
+        }
+
+        if (item.getType() = Const.CALL()) {
+            let subItems = item.getSubItems();
+            let ident = subItems.get();
+            let subItems = subItems.getNext();
+            let paramValues = 0;
+            while (~(subItems = 0)) {
+                let subItem = subItems.get();
+                let paramValue = evalExpr(subItem);
+                if (~Eva.chkVal(paramValue)) {
+                    /* TODO: dispose? */
+                    return paramValue;
+                }
+                if (paramValues = 0) {
+                    let paramValues = List.new(paramValue);
+                } else {
+                    do paramValues.append(paramValue);
+                }
+                let subItems = subItems.getNext();
+            }
+        }
+
+        let name = ident.getStringValue();
+        let blockId = ident.getBlockId();
+        let element = identMap.get(name, blockId);
+        if (element.isBuiltIn()) {
+            return BuiltIn.execByName(name, identMap, paramValues, item);
+        } else {
+            if (~element.isProc()) {
+                do Display.printConst("tried to call non-procedure ");
+                do Display.printString(name);
+                do Display.newline();
+                return 0;
+            }
+
+            let procItem = element.getProcItem();
+
+            /* get procedure parameter identifier list */
+            let paramIdents = AstSel.procArgs(procItem);
+
+            /* variable declarations: push */
+            let procRest = AstSel.blockRest(procItem);
+            if (procRest = 0) {
+                let hasMoreDeclarations = false;
+            } else {
+                let subItem = procRest.get();
+                let hasMoreDeclarations =
+                    (subItem.getType() = Const.PROC_DECL())
+                    | (subItem.getType() = Const.VAR_DECL());
+            }
+            while (hasMoreDeclarations) {
+                if (subItem.getType() = Const.VAR_DECL()) {
+                    let name = AstSel.varName(subItem);
+                    let blockId = subItem.getBlockId();
+                    let element = identMap.get(name, blockId);
+/*
+                    do Display.printConst("-- execCall: push ");
+                    do Display.printString(name);
+                    do Display.printConst(" blockId=");
+                    do Display.printInt(blockId);
+                    do Display.newline();
+*/
+                    do element.push();
+                }
+                let procRest = procRest.getNext();
+                if (procRest = 0) {
+                    let hasMoreDeclarations = false;
+                } else {
+                    let subItem = procRest.get();
+                    let hasMoreDeclarations =
+                        (subItem.getType() = Const.PROC_DECL())
+                        | (subItem.getType() = Const.VAR_DECL());
+                }
+            }
+
+            /* assign values of params to ident list */
+            let subItem = paramIdents.get();
+            while (~(subItem.getType() = Const.CH_PARCL())) {
+                if (paramValues = 0) {
+                    do Display.printConstln("call: not enough parameters");
+                    return 0;
+                }
+                let name = subItem.getStringValue();
+                let blockId = subItem.getBlockId();
+                let element = identMap.get(name, blockId);
+                if (element = 0) {
+                    do Display.printConst("call: missing declaration of variable ");
+                    do Display.printString(name);
+                    do Display.newline();
+                    /* TODO: ?check during pass1? */
+                    return 0;
+                }
+                let paramValue = paramValues.get();
+                if (~(element.getType() = paramValue.getType())) {
+                    do Display.printConstln("call: wrong parameter type");
+                    return 0;
+                }
+                do element.setValue(paramValue);
+                let paramIdents = paramIdents.getNext();
+                let paramValues = paramValues.getNext();
+                let subItem = paramIdents.get();
+            }
+            if (~(paramValues = 0)) {
+                do Display.printConstln("call: too many arguments");
+                return 0;
+            }
+
+            /* execute procedure units */
+            let blockId = AstSel.procInBlockId(procItem);
+            let procType = AstSel.procType(procItem);
+            while (~(procRest = 0)) {
+                let subItem = procRest.get();
+                let unitValue = execUnit(subItem);
+                if (~(unitValue = 0)) {
+                    do identMap.popBlock(blockId);
+                    /* check return type */
+                    if (procType = Const.ILLEGAL()) {
+                        do Display.printConstln("error: procedure without return type");
+                        do unitValue.dispose();
+                        return 0;
+                    }
+                    if (~(procType = unitValue.getType())) {
+                        do Display.printConstln("error: wrong return value type");
+                        do unitValue.dispose();
+                        return 0;
+                    }
+                    return unitValue;
+                }
+                let procRest = procRest.getNext();
+            }
+
+            do identMap.popBlock(blockId);
+
+            /* check no return value needed  */
+            if (~(procType = Const.ILLEGAL())) {
+                do Display.printConstln("error: procedure didn't return a value");
+            }
+            return 0;
+        }
+    }
+
+    method Value signValue(boolean sign, integer value) {
+        if (~sign) {
+            return Value.newInteger(value);
+        } else {
+            return Value.newInteger(-value);
+        }
+    }
+
+    /* factor= [ "-" ]  number | string | ident | ( "(" call | expr ")") */
+    method Value evalFactor(Item item) {
+        var List subItems;
+        var Item subItem;
+        var boolean sign;
+        var String name;
+        var Element element;
+        var integer blockId;
+        var Value val;
+        var integer intval;
+
+        /* sign */
+        let subItems = item.getSubItems();
+        let subItem = subItems.get();
+        if (subItem.getType() = Const.CH_MINUS()) {
+            let sign = true;
+            let subItems = subItems.getNext();
+            let subItem = subItems.get();
+        } else {
+            let sign = false;
+        }
+
+        /* number */
+        if (subItem.getType() = Const.T_INTEGER()) {
+            let intval = subItem.getIntegerValue();
+            return signValue(sign, intval);
+        }
+
+        /* string */
+        if (subItem.getType() = Const.T_STRING()) {
+            let val = subItem.getValue();
+            return Value.copy(val);
+        }
+
+        /* ident */
+        if (subItem.getType() = Const.IDENT()) {
+            let name = AstSel.identName(subItem);
+            let blockId = subItem.getBlockId();
+            let element = identMap.get(name, blockId);
+            if (element.getType() = Const.T_PROCEDURE()) {
+                /* procedure call */
+                let val = execCall(subItem);
+                if (val = Const.QUIT()) {
+                    return Const.QUIT();
+                }
+            } else {
+                /* variable */
+                let val = element.getValue();
+                if (val = 0) {
+                    do Display.printConst("undefined identifier: ");
+                    do Display.printString(subItem.getStringValue());
+                    do Display.newline();
+                    return 0;
+                }
+                let val = Value.copy(val);
+            }
+            if (val = 0) {
+                do Display.printConst("error: unset variable ");
+                do Display.printString(name);
+                do Display.newline();
+                return 0;
+            }
+            if (val.getType() = Const.T_INTEGER()) {
+                let intval = val.getIntegerValue();
+                do val.dispose();
+                return signValue(sign, intval);
+            } else {
+                return val;
+            }
+        }
+
+        /* call-expr */
+        if (subItem.getType() = Const.CH_PAROP()) {
+            let subItems = subItems.getNext();
+            let subItem = subItems.get();
+            if (subItem.getType() = Const.CALL()) {
+                let val = execCall(subItem);
+            }
+            if (subItem.getType() = Const.EXPR()) {
+                let val = evalExpr(subItem);
+            }
+            if (~Eva.chkVal(val)) {
+                return val;
+            }
+            if (val.getType() = Const.T_INTEGER()) {
+                let intval = val.getIntegerValue();
+                do val.dispose();
+                return signValue(sign, intval);
+            } else {
+                return val;
+            }
+        }
+
+        return 0;
+    }
+
+    /* term = factor { ( "*" | "/" | mod ) factor } */
+    method Value evalTerm(Item item) {
+        var Value factor;
+        var integer op;
+        var integer result;
+        var List subItems;
+        var Item subItem;
+        var integer termval;
+
+        let subItems = item.getSubItems();
+        let subItem = subItems.get();
+        let factor = evalFactor(subItem);
+        if (~Eva.chkVal(factor)) {
+            return 0;
+        }
+
+        if (factor.getType() = Const.T_STRING()) {
+            return factor;
+        }
+
+        if (factor.getType() = Const.T_BOOLEAN()) {
+            return factor;
+        }
+
+        if (~(factor.getType() = Const.T_INTEGER())) {
+            return 0;
+        }
+
+        let termval = factor.getIntegerValue();
+        do factor.dispose();
+        let result = termval;
+
+        let subItems = subItems.getNext();
+        while (~(subItems = 0)) {
+            let subItem = subItems.get();
+            let op = subItem.getType();
+            let subItems = subItems.getNext();
+            let subItem = subItems.get();
+            let factor = evalFactor(subItem);
+            if (~Eva.chkVal(factor)) {
+                return factor;
+            }
+            if (~(factor.getType() = Const.T_INTEGER())) {
+                return 0;
+            }
+
+            let termval = factor.getIntegerValue();
+            do factor.dispose();
+            if (op = Const.CH_STAR()) {
+                let result = result * termval;
+            }
+            if (op = Const.CH_SLASH()) {
+                let result = result / termval;
+            }
+            if (op = Const.KW_MOD()) {
+                let result = result - (termval * (result / termval));
+            }
+            let subItems = subItems.getNext();
+        }
+
+        return Value.newInteger(result);
+    }
+
+    /* arithm = term {( "+" | "-" ) term } */
+    method Value evalArithm(Item item) {
+        var Value term;
+        var integer op;
+        var integer result;
+        var List subItems;
+        var Item subItem;
+
+        let subItems = item.getSubItems();
+        let subItem = subItems.get();
+        let term = evalTerm(subItem);
+        if (~Eva.chkVal(term)) {
+            return term;
+        }
+
+        if (term.getType() = Const.T_STRING()) {
+            return term;
+        }
+
+        if (term.getType() = Const.T_BOOLEAN()) {
+            return term;
+        }
+
+        if (~(term.getType() = Const.T_INTEGER())) {
+            return 0;
+        }
+
+        let result = term.getIntegerValue();
+        do term.dispose();
+
+        let subItems = subItems.getNext();
+        while (~(subItems = 0)) {
+            let subItem = subItems.get();
+            let op = subItem.getType();
+            let subItems = subItems.getNext();
+            let subItem = subItems.get();
+            let term = evalTerm(subItem);
+            if (~Eva.chkVal(term)) {
+                return term;
+            }
+
+            if (~(term.getType() = Const.T_INTEGER())) {
+                return 0;
+            }
+
+            if (op = Const.CH_PLUS()) {
+                let result = result + term.getIntegerValue();
+            }
+            if (op = Const.CH_MINUS()) {
+                let result = result - term.getIntegerValue();
+            }
+            do term.dispose();
+            let subItems = subItems.getNext();
+        }
+
+        return Value.newInteger(result);
+    }
+
+    method boolean evalRel(integer a1, integer a2, Item relOp) {
+        var integer opch1;
+        var integer opch2;
+        var List subItems;
+        var Item subItem;
+
+        /* first character */
+        let subItems = relOp.getSubItems();
+        let subItem = subItems.get();
+        let opch1 = subItem.getType();
+
+        /* second character */
+        let subItems = subItems.getNext();
+        if (subItems = 0) {
+            let opch2 = 0;
+        } else {
+            let subItem = subItems.get();
+            let opch2 = subItem.getType();
+        }
+
+        if (( (opch1 = Const.CH_EQUALS()) | (opch2 = Const.CH_EQUALS()) )
+              & (a1 = a2)) {
+            return true;
+        }
+
+        if (((opch1 = Const.CH_GREATER()) | (opch2 = Const.CH_GREATER()))
+              & (a1 > a2)) {
+            return true;
+        }
+
+        if ((a1 < a2) & (opch1 = Const.CH_LOWER())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /* log_expr = true | false | (arithm [ rel_op arithm ]) */
+    method Value evalLogExpr(Item item) {
+        var Value value;
+        var Value arithm1;
+        var integer a1;
+        var Item relOp;
+        var Value arithm2;
+        var integer a2;
+        var List subItems;
+        var Item subItem;
+
+        let subItems = item.getSubItems();
+        let subItem = subItems.get();
+
+        /* test if boolean constant */
+        if (subItem.getType() = Const.T_BOOLEAN()) {
+            let value = subItem.getValue();
+            return Value.newBoolean(value.getBooleanValue());
+        }
+
+        /* get first arithm */
+        let arithm1 = evalArithm(subItem);
+        if (~Eva.chkVal(arithm1)) {
+            return arithm1;
+        }
+        if (arithm1.getType() = Const.T_STRING()) {
+            return arithm1;
+        }
+        if (arithm1.getType() = Const.T_BOOLEAN()) {
+            return arithm1;
+        }
+
+        let subItems = subItems.getNext();
+        if (subItems = 0) {
+            return arithm1;
+        }
+        if (arithm1.getType() = Const.T_INTEGER()) {
+            let a1 = arithm1.getIntegerValue();
+            do arithm1.dispose();
+        } else {
+            return 0;
+        }
+
+        /* get rel_op */
+        let relOp = subItems.get();
+
+        /* get second arithm */
+        let subItems = subItems.getNext();
+        let subItem = subItems.get();
+        let arithm2 = evalArithm(subItem);
+        if (~Eva.chkVal(arithm2)) {
+            return arithm2;
+        }
+        if (~(arithm2.getType() = Const.T_INTEGER())) {
+            return 0;
+        }
+        let a2 = arithm2.getIntegerValue();
+        do arithm2.dispose();
+
+        /* generate result value */
+        return Value.newBoolean(evalRel(a1, a2, relOp));
+    }
+
+    method Value evalCallOrExpr(Item item) {
+        if (item.getType() = Const.CALL()) {
+            return execCall(item);
+        }
+        if (item.getType() = Const.EXPR()) {
+            return evalExpr(item);
+        }
+        return 0;
+    }
+
+    /* returns the value of the expression */
+    /* expr = [not] log_expr { (and | or ) expr } */
+    method Value evalExpr(Item item) {
+        var List subItems;
+        var boolean is_neg;
+        var Item subItem;
+        var integer op;
+        var Item expr;
+        var Value currVal;
+        var boolean acc;
+        var boolean curr;
+
+        /* neg */
+        let subItems = item.getSubItems();
+        let subItem = subItems.get();
+        if (subItem.getType() = Const.KW_NOT()) {
+            let is_neg = true;
+            let subItems = subItems.getNext();
+            let subItem = subItems.get();
+        } else {
+            let is_neg = false;
+        }
+
+        /* log_expr */
+        if (subItem.getType() = Const.LOG_EXPR()) {
+            let currVal = evalLogExpr(subItem);
+            if (~Eva.chkVal(currVal)) {
+                return currVal;
+            }
+            if (currVal.getType() = Const.T_BOOLEAN()) {
+                let acc = currVal.getBooleanValue();
+                do currVal.dispose();
+                if (is_neg) {
+                    let acc = ~acc;
+                }
+            } else {
+                return currVal;
+            }
+        } else {
+            return 0;
+        }
+
+        let subItems = subItems.getNext();
+        while (~(subItems = 0)) {
+            let subItem = subItems.get();
+            let op = subItem.getType();
+
+            let subItems = subItems.getNext();
+            let subItem = subItems.get();
+            let currVal = evalExpr(subItem);
+            if (~Eva.chkVal(currVal)) {
+                return currVal;
+            }
+
+            if (~(currVal.getType() = Const.T_BOOLEAN())) {
+                do currVal.dispose();
+                return 0;
+            }
+            let curr = currVal.getBooleanValue();
+            do currVal.dispose();
+
+            if (op = Const.KW_AND()) {
+                let acc = acc & curr;
+            } else {
+                if (op = Const.KW_OR()) {
+                    let acc = acc | curr;
+                }
+            }
+
+            let subItems = subItems.getNext();
+        }
+
+        return Value.newBoolean(acc);
+    }
+
+    method void assignValue(Item variable, Value value) {
+        var Item expr;
+        var Value oldVal;
+        var Element element;
+        var String name;
+        var integer blockId;
+
+        /* left side */
+        let name = variable.getStringValue();
+        let blockId = variable.getBlockId();
+        let element = identMap.get(name, blockId);
+        if (element = 0) {
+            do Display.printConst("error: unknown vairable ");
+            do Display.printString(name);
+            do Display.newline();
+            return;
+        }
+        if (element.isProc()) {
+            do Display.printConst("error: assign to procedure ");
+            do Display.printString(name);
+            do Display.newline();
+            return;
+        }
+        let oldVal = element.getValue();
+        if (~(oldVal = 0)) {
+            do oldVal.dispose();
+        }
+
+        /* right side */
+        if (~Eva.chkVal(value)) {
+            do Display.printConstln("error: no value expression");
+            return;
+        }
+
+        /* set value */
+        do element.setValue(value);
+
+        return;
+    }
+
+    /* execute assignment
+     * called only after pass1 succeed => variable is defined
+     */
+    method Value execAssignment(Item item) {
+        var Item variable;
+        var Item expr;
+        var Value value;
+
+        /* left side */
+        let variable = AstSel.assignVar(item);
+
+        /* right side */
+        let expr = AstSel.assignExpr(item);
+        let value = evalExpr(expr);
+        if (~Eva.chkVal(value)) {
+            return value;
+        }
+
+        /* set value */
+        do assignValue(variable, value);
+
+        return 0;
+    }
+
+    /* return value if must return from procedure, otherwise 0 */
+    method Value execUnit(Item item) {
+        var Item retExpr;
+        var Value retVal;
+        var integer blockId;
+        var Element retEl;
+
+        if (item.getType() = Const.ASSIGN()) {
+            do execAssignment(item);
+            return 0;
+        }
+
+        if (item.getType() = Const.RETURN()) {
+            /* return values: created in identMap on enter procedure */
+            let retExpr = AstSel.retExpr(item);
+            let retVal = evalExpr(retExpr);
+            return retVal;
+        }
+
+        if (item.getType() = Const.CALL()) {
+            return execCall(item);
+        }
+
+        if (item.getType() = Const.DO_BLOCK()) {
+            return execDoBlock(item);
+        }
+
+        if (item.getType() = Const.DO_ITER()) {
+            return execDoIter(item);
+        }
+
+        if (item.getType() = Const.DO_WHILE()) {
+            return execDoWhile(item);
+        }
+
+        if (item.getType() = Const.COND()) {
+            return execCond(item);
+        }
+
+        /* other items (declarations) that don't need to be executed */
+        return 0;
+    }
+
+    /* return value if must return from last procedure, otherwise 0 */
+    method Value execDoBlock(Item item) {
+        var List subItems;
+        var Item subItem;
+        var Value val;
+
+        let subItems = item.getSubItems();
+        while (~(subItems = 0)) {
+            let subItem = subItems.get();
+            let val = execUnit(subItem);
+            if (~(val = 0)) {
+                return val;
+            }
+            let subItems = subItems.getNext();
+        }
+        return 0;
+    }
+
+
+    method Value getExprIntVal(Item expr) {
+        var Value val;
+
+        let val = evalExpr(expr);
+        if (~Eva.chkVal(val)) {
+            return val;
+        }
+        if (val.getType() = Const.T_INTEGER()) {
+            return val;
+        }
+        return 0;
+    }
+
+    method Element getIdentElement(Item ident) {
+        var String name;
+        var integer blockId;
+        let name = AstSel.identName(ident);
+        let blockId = ident.getBlockId();
+        if (blockId = (-1)) {
+            return 0;
+        }
+        return identMap.get(name, blockId);
+    }
+
+    method Value execDoIter(Item item) {
+        var Item loopVar;
+        var integer loopVarVal;
+        var Element loopVarElement;
+        var Value loopVarElementValue;
+        var Item initExpr;
+        var integer initVal;
+        var Item toExpr;
+        var integer toVal;
+        var Item byExpr;
+        var integer byVal;
+        var boolean finished;
+        var Value val;
+
+        var List units;
+        var List currUnits;
+        var Item unit;
+        var Value unitVal;
+
+        /* get condition */
+        let loopVar = AstSel.doIterLoopVar(item);
+        let loopVarElement = getIdentElement(loopVar);
+        if (loopVarElement = 0) {
+            return 0;
+        }
+
+        let initExpr = AstSel.doIterInitExpr(item);
+        let val = getExprIntVal(initExpr);
+        if (~Eva.chkVal(val)) {
+            /* TODO: dispose? */
+            return val;
+        }
+        let initVal = val.getIntegerValue();
+
+        do assignValue(loopVar, Value.newInteger(initVal));
+
+        let toExpr = AstSel.doIterToExpr(item);
+        let val = getExprIntVal(toExpr);
+        if (~Eva.chkVal(val)) {
+            /* TODO: dispose? */
+            return val;
+        }
+        let toVal = val.getIntegerValue();
+
+        let byExpr = AstSel.doIterByExpr(item);
+        if (byExpr = 0) {
+            let byVal = 1;
+        } else {
+            let val = getExprIntVal(byExpr);
+            if (~Eva.chkVal(val)) {
+                /* TODO: dispose? */
+                return val;
+            }
+            let byVal = val.getIntegerValue();
+        }
+        if (byVal > 0) {
+            let finished = (initVal > toVal);
+        } else {
+            let finished = (initVal < toVal);
+        }
+
+        /* loop */
+        let units = AstSel.blockUnits(item);
+        while (~finished) {
+            let currUnits = units;
+            while (~(currUnits = 0)) {
+                let unit = currUnits.get();
+                let unitVal = execUnit(unit);
+                if (~(unitVal = 0)) {
+                    return unitVal;
+                }
+                let currUnits = currUnits.getNext();
+            }
+
+            /* test condition */
+            let loopVarElementValue = loopVarElement.getValue();
+            let loopVarVal = loopVarElementValue.getIntegerValue();
+
+            let val = getExprIntVal(toExpr);
+            if (~Eva.chkVal(val)) {
+                return val;
+            }
+            let toVal = val.getIntegerValue();
+            if (byExpr = 0) {
+                let byVal = 1;
+            } else {
+                let val = getExprIntVal(byExpr);
+                if (~Eva.chkVal(val)) {
+                    return val;
+                }
+                let byVal = val.getIntegerValue();
+            }
+
+            /* set loopVar to loopVar + byVal */
+            let loopVarVal = loopVarVal + byVal;
+            do assignValue(loopVar, Value.newInteger(loopVarVal));
+
+            if (byVal > 0) {
+                let finished = (loopVarVal > toVal);
+            } else {
+                let finished = (loopVarVal < toVal);
+            }
+            if (loopVarVal = 0) {
+                let finished = true;
+            }
+        }
+        return 0;
+    }
+
+    method Value execDoWhile(Item item) {
+        var Item condExpr;
+        var Value condVal;
+        var boolean condBool;
+        var List units;
+        var List currUnits;
+        var Item unit;
+        var Value unitVal;
+
+        let condExpr = AstSel.doWhileCond(item);
+        let condVal = evalCallOrExpr(condExpr);
+        if (~Eva.chkVal(condVal)) {
+            return condVal;
+        }
+        let condBool = condVal.getBooleanValue();
+        do condVal.dispose();
+        let units = AstSel.blockUnits(item);
+        while (condBool) {
+            let currUnits = units;
+            while (~(currUnits = 0)) {
+                let unit = currUnits.get();
+                let unitVal = execUnit(unit);
+                if (~(unitVal = 0)) {
+                    return unitVal;
+                }
+                let currUnits = currUnits.getNext();
+            }
+            let condVal = evalCallOrExpr(condExpr);
+            if (~Eva.chkVal(condVal)) {
+                return condVal;
+            }
+            let condBool = condVal.getBooleanValue();
+            do condVal.dispose();
+        }
+
+        return 0;
+    }
+
+    /* cond = if_stmt unit {else_if_stmt unit} [else unit] */
+    method Value execCond(Item item) {
+        var List subItems;
+        var Item stmt;
+        var Item condExpr;
+        var Item unit;
+        var Value exprVal;
+        var boolean boolVal;
+        var boolean hasNext;
+
+        /* if_stmt */
+        let subItems = item.getSubItems();
+        let stmt = subItems.get();
+        let condExpr = AstSel.ifCond(stmt);
+        let exprVal = evalExpr(condExpr);
+        if (~Eva.chkVal(exprVal)) {
+            return exprVal;
+        }
+        let boolVal = exprVal.getBooleanValue();
+
+        /* unit */
+        let subItems = subItems.getNext();
+        if (boolVal) {
+            let unit = subItems.get();
+            return execUnit(unit);
+        }
+        do exprVal.dispose();
+
+        /* {else_if_stmt unit} */
+        let subItems = subItems.getNext();
+        if (subItems = 0) {
+            let hasNext = false;
+        } else {
+            let stmt = subItems.get();
+            let hasNext = (stmt.getType() = Const.ELSE_IF_STMT());
+        }
+
+        while (hasNext) {
+            /* else_if_stmt */
+            let condExpr = AstSel.elseIfCond(stmt);
+            let exprVal = evalExpr(condExpr);
+            if (~Eva.chkVal(exprVal)) {
+                return exprVal;
+            }
+            let boolVal = exprVal.getBooleanValue();
+
+            /* unit */
+            let subItems = subItems.getNext();
+            if (boolVal) {
+                let unit = subItems.get();
+                return execUnit(unit);
+            }
+            do exprVal.dispose();
+
+            let subItems = subItems.getNext();
+            if (subItems = 0) {
+                let hasNext = false;
+            } else {
+                let stmt = subItems.get();
+                let hasNext = (stmt.getType() = Const.ELSE_IF_STMT());
+            }
+        }
+
+        /* [else unit] */
+        if (subItems = 0) { /* subItems -> else */
+            return 0;
+        }
+
+        let subItems = subItems.getNext(); /* unit */
+        let unit = subItems.get();
+        return execUnit(unit);
+    }
+
+    /* only assignments, calls, exprs and blocks go here */
+    method Value execute(Item item) {
+        if (item.getType() = Const.ASSIGN()) {
+            return execAssignment(item);
+        }
+
+        if (item.getType() = Const.CALL()) {
+            return execCall(item);
+        }
+
+        if (item.getType() = Const.EXPR()) {
+            return evalExpr(item);
+        }
+
+        if (item.getType() = Const.DO_BLOCK()) {
+            return execDoBlock(item);
+        }
+
+        if (item.getType() = Const.DO_ITER()) {
+            return execDoIter(item);
+        }
+
+        if (item.getType() = Const.DO_WHILE()) {
+            return execDoWhile(item);
+        }
+        return 0;
+    }
+
+    /* execute method: performs the two passes */
+    method Value evaluate(Item item) {
+        if (pass1(item)) {
+            return execute(item);
+        } else {
+            do Display.printConstln("Pass1 failed.");
+            return 0;
+        }
+    }
+
+    method void dispose() {
+        do identMap.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

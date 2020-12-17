@@ -1,0 +1,101 @@
+class Element {
+
+    field integer type;          /* procedure, integer, boolean, string */
+    field Item procedureItem;    /* procedure Item in ast */
+    field List valueStack;       /* variable: stack of values */
+    field boolean builtIn;
+
+    constructor Element newProc(Item item) {
+        let type = Const.T_PROCEDURE();
+        let procedureItem = item;
+        let builtIn = false;
+        return this;
+    }
+
+    constructor Element newBuiltIn(integer builtInType) {
+        let type = builtInType;
+        let builtIn = true;
+        return this;
+    }
+
+    constructor Element newVar(integer valueType) {
+        let type = valueType;
+        let valueStack = 0;
+        let builtIn = false;
+        return this;
+    }
+
+    method boolean isBuiltIn() {
+        return builtIn;
+    }
+
+    method integer getType() {
+        return type;
+    }
+
+    method Item getProcItem() {
+        return procedureItem;
+    }
+
+    method void setValue(Value value) {
+        if (valueStack = 0) {
+            /* can be 0 if blockId = 0 */
+            let valueStack = List.new(0);
+        }
+        do valueStack.set(value);
+        return;
+    }
+
+    method boolean isEmpty() {
+        if (valueStack = 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    method boolean isProc() {
+        return type = Const.T_PROCEDURE();
+    }
+
+    method Value getValue() {
+        if (~(valueStack = 0)) {
+            return valueStack.get();
+        }
+        return 0;
+    }
+
+    method void push() {
+        if (valueStack = 0) {
+            let valueStack = List.new(0);
+        } else {
+            let valueStack = valueStack.prepend(0);
+        }
+        return;
+    }
+
+    method void pop() {
+        if (~(valueStack = 0)) {
+            let valueStack = valueStack.deleteFirst();
+        }
+        return;
+    }
+
+    method void dispose() {
+        var Value value;
+
+        if ((~builtIn) & isProc()) {
+            do procedureItem.deepDispose();
+        } else {
+            while (~(valueStack = 0)) {
+                let value = valueStack.get();
+                do value.dispose();
+                let valueStack = valueStack.deleteFirst();
+            }
+        }
+        
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

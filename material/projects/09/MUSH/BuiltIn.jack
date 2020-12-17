@@ -1,0 +1,130 @@
+class BuiltIn {
+    /* built-in functions */
+
+    function Value execByName(String name, IdentMap identMap,
+             List values, Item item) {
+        if (Tools.stringEqConst(name, "type")) {
+            do BuiltIn.type(values);
+            return 0;
+        }
+        if (Tools.stringEqConst(name, "list")) {
+            do BuiltIn.list(identMap, item);
+            return 0;
+        }
+        if (Tools.stringEqConst(name, "quit")) {
+            return Const.QUIT();
+        }
+        if (Tools.stringEqConst(name, "help")) {
+            do Help.loop();
+            return 0;
+        }
+        if (Tools.stringEqConst(name, "clear")) {
+            do Display.clear();
+            return 0;
+        }
+        if (Tools.stringEqConst(name, "delete")) {
+            do BuiltIn.delete(identMap, values, item);
+            return 0;
+        }
+        return 0;
+    }
+
+    /* type function: types the (first) argument on the display */
+    function void type(List values) {
+        var Value val;
+        if (values = 0) {
+            do Display.printConstln("type: no expression given");
+            return;
+        }
+        let val = values.get();
+        do val.println();
+        do val.dispose();
+        return;
+    }
+
+    /* list variables of every block from current to 0 */
+    function void list(IdentMap identMap, Item item) {
+        var integer blockId;
+        var integer tmpBlockId;
+        var Item tmpItem;
+        var VarTable varTable;
+
+        let varTable = VarTable.new();
+        let blockId = item.getBlockId();
+        let tmpItem = item;
+        let tmpBlockId = tmpItem.getBlockId();
+        while ( (~(blockId = 0)) & (~(tmpItem = 0)) ) {
+            do BuiltIn.listByBlockId(identMap, blockId, varTable);
+            while ((tmpBlockId = blockId) & (~(tmpItem = 0))) {
+                let tmpItem = tmpItem.getParent();
+                if (~(tmpItem = 0)) {
+                    let tmpBlockId = tmpItem.getBlockId();
+                }
+            }
+            let blockId = tmpBlockId;
+        }
+        do BuiltIn.listByBlockId(identMap, 0, varTable);
+        do varTable.dispose();
+        return;
+    }
+
+    /* list function: list variable names in IdentMap with blockId
+     * varable names are added to the varTable and are not printed if
+     * they are already there */
+    function void listByBlockId(IdentMap identMap, integer blockId,
+            VarTable varTable) {
+        var Array table;
+        var List list;
+        var integer i;
+        var integer size;
+        var IdentMapNode node;
+        var Element element;
+        var string name;
+        var integer type;
+
+        let table = identMap.getTable();
+        let i = 0;
+        let size = identMap.getTableArraySize();
+        while (i < size) {
+            let list = table[i];
+            while (~(list = 0)) {
+                let node = list.get();
+                if (node.getBlockId() = blockId) {
+                    let name = node.getName();
+                    if (varTable.get(name) = (-1)) {
+                        do Display.printString(name);
+                        do Display.printConst(": ");
+                        let element = node.getElement();
+                        let type = element.getType();
+                        do AstPrint.type(type);
+                        do Display.newline();
+                        do varTable.put(name, blockId);
+                    }
+                }
+                let list = list.getNext();
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    function void delete(IdentMap identMap, List values, Item item) {
+        var Value value;
+        var String name;
+        var integer blockId;
+
+        let value = values.get();
+        if (~(value.getType() = Const.T_STRING())) {
+            return;
+        }
+        let name = value.getStringValue();
+        let blockId = item.getBlockId();
+        if (~(identMap.delete(name, blockId))) {
+            do Display.printConst("delete: ");
+            do Display.printString(name);
+            do Display.printConstln(" not found.");
+        }
+        return;
+    }
+
+}

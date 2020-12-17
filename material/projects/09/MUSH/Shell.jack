@@ -1,0 +1,210 @@
+class Shell {
+
+    field String prompt;
+
+    constructor Shell new() {
+        do Display.printConst("\\\\    \\\\ \\\\  \\\\  ");
+        do Display.printConstln("\\\\\\\\  \\\\  \\\\");
+        do Display.printConstln("\\██  \\\\██\\██ \\██\\\\████ \\██ \\██"); 
+        do Display.printConstln("\\███ \\███\\██ \\██\\██\\\\  \\██\\\\██");
+        do Display.printConstln("\\██\\██\\██\\██ \\██ \\████ \\██████");
+        do Display.printConstln("\\██   \\██\\██\\\\██ \\\\\\\\██\\██ \\██");
+        do Display.printConstln("\\██   \\██  ████  \\████ \\██ \\██");
+        do Display.newline();
+        do Display.printConst("MUSH v0.0, peer-graded assignment ");
+        do Display.printConstln("for project 9");
+        do Display.printConstln("of the \"Nand to Tetris Part II\" course.");
+        do Display.newline();
+        do Display.printConstln("Copyleft (c) 2018");
+        do Display.newline();
+        do Display.printConstln("The GPLv3 source code is available at:");
+        do Display.printConstln("https://github.com/naens/n2t/tree/master/jack/MUSH");
+        do Display.newline();
+        do Display.printConstln("Type help for usage and the list of commands.");
+        do Display.newline();
+        let prompt = "MUSH>";
+        return this;
+    }
+
+    method boolean isBlockStmt(Item item) {
+        if (item = 0) {
+            return false;
+        }
+        if (item.getType() = Const.PROC_STMT()) {
+            return true;
+        }
+        if (item.getType() = Const.DO_BLOCK_STMT()) {
+            return true;
+        }
+        if (item.getType() = Const.DO_WHILE_STMT()) {
+            return true;
+        }
+        if (item.getType() = Const.DO_ITER_STMT()) {
+            return true;
+        }
+        return false;
+    }
+
+    method void run() {
+        var String line;
+        var Tokenizer tokenizer;
+        var Item item;
+        var Item ifCondItem;
+        var Value ifVal;
+        var boolean ifValBool;
+        var integer depth;
+        var Item block;
+        var Ifs ifs;
+        var Cond cond;
+        var Eva eva;
+        var Value value;
+        var integer i;
+        var Indent indent;
+        var integer indentAmount;
+        var integer indentShift;
+        var boolean procDeclOK;
+
+        let tokenizer = Tokenizer.new();
+        let ifs = Ifs.new();
+        let eva = Eva.new();
+        let indent = Indent.new();
+        let depth = 0;
+        let value = 0;
+
+        do Display.printString(prompt);
+        let line = Display.readln();
+        while (~(value = Const.QUIT())) {
+            do tokenizer.setLine(line);
+            let item = LineParser.parseLine(tokenizer);
+
+            if (~(item = 0)) {
+                if (depth = 0) {
+                    /* prevent toplevel procedure declaration if name taken */
+                    if (item.getType() = Const.PROC_STMT()) {
+                        if (~(eva.checkProcName(AstSel.procStmtName(item)))) {
+                            do tokenizer.appendNode(item);
+                            let item = 0;
+                        }
+                    } else {
+                        /* no end on top level */
+                        if (item.getType() = Const.END_STMT()) {
+                            do Display.printConstln("error: end without block");
+                            let item = 0;
+                        }
+                    }
+                }
+            }
+
+            if (~(item = 0)) {
+                do indent.line(item);
+                let indentShift = indent.getShift();
+                if (indentShift > 0) {
+                    do Display.shiftPrevLineCharsLeft(indentShift * 2);
+                }
+                if (depth = 0) {
+                    if (isBlockStmt(item)) {
+                        do tokenizer.appendNode(item);
+                        let depth = 1;
+                    } else {
+                        if (item.getType() = Const.IF_STMT()) {
+                            let ifCondItem = AstSel.ifCond(item);
+                            let ifVal = eva.evaluate(ifCondItem);
+                            let ifValBool = ifVal.getBooleanValue();
+                            let cond = Cond.new(ifValBool);
+                            do ifVal.dispose();
+                            do ifs.ifCond(cond);
+                        } else {
+                            if (item.getType() = Const.KW_ELSE()) {
+                                do ifs.ifReverse();
+                            } else {
+                                if (item.getType() = Const.ELSE_IF_STMT()) {
+                                    do ifs.ifReverse();
+                                    let ifCondItem = AstSel.elseIfCond(item);
+                                    let ifVal = eva.evaluate(ifCondItem);
+                                    let ifValBool = ifVal.getBooleanValue();
+                                    let cond = Cond.new(ifValBool);
+                                    do ifVal.dispose();
+                                    do ifs.ifCond(cond);
+                                } else {
+                                    if (ifs.checkIfs()) {
+                                        let value = eva.evaluate(item);
+                                        if (~(item = 0)) {
+                                            if (~(item.getType()
+                                                 = Const.VAR_DECL())) {
+                                                do item.deepDispose();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    do tokenizer.appendNode(item);
+                    if ((depth = 1) & (item.getType() = Const.END_STMT())) {
+                        let block = ParseLines.parseBlock(tokenizer);
+                        if (block = 0) {
+                            do Display.printConstln("bad block");
+                        }
+                        if (ifs.checkIfs()) {
+                            /* evaluate expression and print value */
+                            let value = eva.evaluate(block);
+                            if (~(block = 0)) {
+                                if(~(block.getType() = Const.PROC_DECL())) {
+                                    do block.deepDispose();
+                                }
+                            }
+                        }
+                    }
+                    if (isBlockStmt(item)) {
+                        let depth = depth + 1;
+                    }
+                    if (item.getType() = Const.END_STMT()) {
+                        let depth = depth - 1;
+                    }
+                }
+            } else  {
+                let indentShift = 0;
+            }
+
+            /* TODO: QUIT/EXIT = command to be interpreted */
+            /* TODO
+             * If statement, evaluate and print.
+             * If variable declaration, add to environment.
+             * If function declaration, accumulate declaration until an
+             * "END" input, and then evaluate and add to the environment.
+             * Procedures can be nested.
+             * Similar with blocks and conds.
+             */
+            do line.dispose();
+            if (~(value = 1)) {
+                let indentShift = indent.getShift();
+                let indentAmount = indent.count();
+                if (indentAmount = 0) {
+                    do Display.printString(prompt);
+                } else {
+                    do Display.printConst("     ");
+                }
+                let i = 0;
+                while (i < indentAmount) {
+                    do Display.printConst("  ");
+                    let i = i + 1;
+                }
+                let line = Display.readln();
+            }
+        }
+        do tokenizer.dispose();
+        do ifs.dispose();
+        do eva.dispose();
+        do line.dispose();
+        do Display.newline();
+        return;
+    }
+
+    method void dispose() {
+        do prompt.dispose();
+        do Memory.deAlloc(this);
+        do Display.printConst("MUSH Terminated.");
+        return;
+    }
+}

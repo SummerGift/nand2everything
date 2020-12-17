@@ -1,0 +1,217 @@
+class AstPrint {
+
+    /* Class containing functions for printing of AST elements
+     * for debug purposes
+     */
+
+    /* function {procInBlockId} <name> (<procDeclBlockId>) [: <type>] */
+    function void procDecl(Item procDecl) {
+        var integer procInBlockId;
+        var integer procDeclBlockId;
+        var String name;
+        var integer type;
+        let name = AstSel.procName(procDecl);
+        let procInBlockId = AstSel.procInBlockId(procDecl);
+        let procDeclBlockId = AstSel.procDeclBlockId(procDecl);
+        let type = AstSel.procType(procDecl);
+        do Display.printConst("procedure {");
+        do Display.printInt(procInBlockId);
+        do Display.printConst("} ");
+        do Display.printString(name);
+        do Display.printConst(" (");
+        do Display.printInt(procDeclBlockId);
+        do Display.printConst(")");
+        if (~(type = Const.ILLEGAL())) {
+            do Display.printConst(": ");
+            do AstPrint.type(type);
+        }
+        do Display.newline();
+        return;
+    }
+
+    /* variable "<name>" (<blockId>): <type> */
+    function void varDecl(Item varDecl) {
+        var integer blockId;
+        var String name;
+        var integer type;
+        let name = AstSel.varName(varDecl);
+        let blockId = varDecl.getBlockId();
+        let type = AstSel.varType(varDecl);
+        do Display.printConst("variable ");
+        do Display.printString(name);
+        do Display.printConst(" (");
+        do Display.printInt(blockId);
+        do Display.printConst("): ");
+        do AstPrint.type(type);
+        do Display.newline();
+        return;
+    }
+
+    function void block(Item block) {
+        if (block.getType() = Const.DO_BLOCK()) {
+            do Display.printConst("do_block ");
+        }
+        if (block.getType() = Const.DO_WHILE()) {
+            do Display.printConst("do_while ");
+        }
+        if (block.getType() = Const.DO_ITER()) {
+            do Display.printConst("do_iter ");
+        }
+        do Display.printConst("{");
+        do Display.printInt(block.getBlockId());
+        do Display.printConstln("}");
+        return;
+    }
+
+    /* end {<blockId>} <name> */
+    function void endStmt(Item endStmt) {
+        var String name;
+        var integer blockId;
+        do Display.printConst("end {");
+        let blockId = endStmt.getBlockId();
+        do Display.printInt(blockId);
+        do Display.printConst("}");
+        let name = AstSel.endName(endStmt);
+        if (~(name = 0)) {
+            do Display.printConst(" ");
+            do Display.printString(name);
+            do name.dispose();
+        }
+        do Display.newline();
+        return;
+    }
+
+    /* functions: <name>: proc (<function blockId>) [<type>]
+     * variables: <name>: var (<variable blockId>) <type>
+     * undefined: <name>: undef
+     */
+    function void ident(IdentMap identMap, Item ident) {
+        var String name;
+        var integer blockId;
+        var Item procItem;
+        var integer procInBlockId;
+        var integer type;
+        var Element element;
+        let name = AstSel.identName(ident);
+        let blockId = ident.getBlockId();
+        do Display.printString(name);
+        do Display.printConst(": ");
+        if (blockId = (-1)) {
+            do Display.printConstln("undef");
+            return;
+        }
+        let element = identMap.get(name, blockId);
+        if (element.getType() = Const.T_PROCEDURE()) {
+            let procItem = element.getProcItem();
+            let procInBlockId = AstSel.procInBlockId(procItem);
+            let type = AstSel.procType(procItem);
+/*
+            do Display.printConst("name=");
+            do Display.printString(name);
+            do Display.newline();
+            do Display.printConst("blockId=");
+            do Display.printInt(blockId);
+            do Display.newline();
+            do Display.printConst("proc=");
+            do procItem.print();
+            do Display.newline();
+*/
+            do Display.printConst("proc {");
+            do Display.printInt(procInBlockId);
+            do Display.printConst("} (");
+
+        } else {
+            let type = element.getType();
+            do Display.printConst("var (");
+        }
+        do Display.printInt(blockId);
+        do Display.printConst(")");
+        if (~(type = Const.ILLEGAL())) {
+            do Display.printConst(" ");
+            do AstPrint.type(type);
+        }
+        do Display.newline();
+        return;
+    }
+
+    function void items(IdentMap identMap, List items) {
+        while (~(items = 0)) {
+            do AstPrint.item(identMap, items.get());
+            let items = items.getNext();
+        }
+        return;
+    }
+
+    /* print an item */
+    function void item(IdentMap identMap, Item item) {
+        var List subItems;
+        if (item.isTerminal()) {
+            if (item.getType() = Const.IDENT()) {
+                do AstPrint.ident(identMap, item);
+            } else {
+                if (item.getType() = Const.KW_ELSE()) {
+                    do Display.printConstln("else");
+                }
+            }
+            return;
+        }
+
+        if (item.getType() = Const.VAR_DECL()) {
+            do AstPrint.varDecl(item);
+            return;
+        }
+
+        if (item.getType() = Const.PROC_DECL()) {
+            do AstPrint.procDecl(item);
+            let subItems = AstSel.procRest(item);
+            do AstPrint.items(identMap, subItems);
+            return;
+        }
+
+        if (item.getType() = Const.END_STMT()) {
+            do AstPrint.endStmt(item);
+            return;
+        }
+
+        let subItems = item.getSubItems();
+        if (item.getType() = Const.IF_STMT()) {
+           do Display.printConstln("if");
+        } else {
+            if (item.getType() = Const.ELSE_IF_STMT()) {
+                do Display.printConstln("else-if");
+            } else {
+                if ((item.getType() = Const.DO_BLOCK())
+                    | ((item.getType() = Const.DO_ITER())
+                        | (item.getType() = Const.DO_WHILE()))) {
+                    do AstPrint.block(item);
+                }
+            }
+        }
+        do AstPrint.items(identMap, subItems);
+        return;
+    }
+
+    function void type(integer type) {
+        if (type = Const.T_STRING()) {
+            do Display.printConst("string");
+        } else {
+            if (type = Const.T_INTEGER()) {
+                do Display.printConst("integer");
+            } else {
+                if (type = Const.T_BOOLEAN()) {
+                    do Display.printConst("boolean");
+                } else {
+                    if (type = Const.T_PROCEDURE()) {
+                        do Display.printConst("procedure");
+                    } else {
+                        do Display.printConst("unknown_type(");
+                        do Display.printInt(type);
+                        do Display.printConst(")");
+                    }
+                }
+            }
+        }
+        return;
+    }
+
+}

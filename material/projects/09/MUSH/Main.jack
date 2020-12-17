@@ -1,0 +1,14 @@
+class Main {
+    function void main() {
+        var Shell shell;
+        do Display.init();
+        do Keywords.init();
+
+        let shell = Shell.new();
+        do shell.run();
+
+        do shell.dispose();
+        do Keywords.finalize();
+        return;
+    }
+}

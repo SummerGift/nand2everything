@@ -1,0 +1,200 @@
+class IdentMap {
+
+    static integer TAB_SZ;
+    field Array table;
+
+    function integer hash(String name, integer blockId) {
+        var integer sum;
+        var integer i;
+        let i = 0;
+        let sum = blockId;
+        while (i < name.length()) {
+            let sum = sum + name.charAt(i);
+            let i = i + 1;
+        }
+        return sum & 31;
+    }
+
+    constructor IdentMap new() {
+        var integer i;
+        let i = 0;
+        let TAB_SZ = 32;
+        let table = Array.new(TAB_SZ);
+        while (i < TAB_SZ) {
+            let table[i] = 0;
+            let i = i + 1;
+        }
+        return this;
+    }
+
+    method IdentMapNode getNode(List list, String name, integer blockId) {
+        var IdentMapNode node;
+        while (~(list = 0)) {
+            let node = list.get();
+            if (Tools.stringEquals(node.getName(), name)
+                 & (node.getBlockId() = blockId)) {
+                return node;
+            }
+            let list = list.getNext();
+        }
+        return 0;
+    }
+
+    method void putElement(String name, integer blockId, Element element) {
+        var List list;
+        var integer h;
+        var IdentMapNode node;
+        let h = IdentMap.hash(name, blockId);
+        let list = table[h];
+        let node = getNode(list, name, blockId);
+        if (node = 0) {
+            let node = IdentMapNode.new(name, blockId, element);
+        } else {
+            do node.replaceElement(element);
+        }
+        if (list = 0) {
+            let table[h] = List.new(node);
+        } else {
+            let table[h] = list.prepend(node);
+        }
+        return;
+    }
+
+    method void putProc(String name, integer blockId, Item proc) {
+        var Element element;
+        let element = Element.newProc(proc);
+        do putElement(name, blockId, element);
+        return;
+    }
+
+    method void putVar(String name, integer blockId, integer type) {
+        var Element element;
+        let element = Element.newVar(type);
+        do putElement(name, blockId, element);
+        return;
+    }
+
+    method void putBuiltIn(String name, integer blockId, integer type) {
+        var Element element;
+        let element = Element.newBuiltIn(type);
+        do putElement(name, blockId, element);
+        return;
+    }
+
+    method Element get(String name, integer blockId) {
+        var List list;
+        var integer h;
+        var IdentMapNode node;
+        let h = IdentMap.hash(name, blockId);
+        let list = table[h];
+        let node = getNode(list, name, blockId);
+        if (node = 0) {
+            return 0;
+        } else {
+            return node.getElement();
+        }
+    }
+
+    method Array getTable() {
+        return table;
+    }
+
+    method integer getTableArraySize() {
+        return TAB_SZ;
+    }
+
+    /* looks for all elements of blockId and pushes them */
+    method void pushBlock(integer blockId) {
+        var List list;
+        var integer i;
+        var IdentMapNode node;
+        var Element element;
+        let i = 0;
+        while (i < TAB_SZ) {
+            let list = table[i];
+            while (~(list = 0)) {
+                let node = list.get();
+                if (node.getBlockId() = blockId) {
+                    let element = node.getElement();
+                    if (~element.isProc()) {
+                        do element.push();
+                    }
+                }
+                let list = list.getNext();
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void popBlock(integer blockId) {
+        var List list;
+        var integer i;
+        var List next;
+        var IdentMapNode node;
+        var Element element;
+        let i = 0;
+        while (i < TAB_SZ) {
+            let list = table[i];
+            while (~(list = 0)) {
+                let node = list.get();
+                if (node.getBlockId() = blockId) {
+                    let element = node.getElement();
+                    if (~(element.isProc())) {
+                        do element.pop();
+                    }
+                }
+                let list = list.getNext();
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method boolean delete(String name, integer blockId) {
+        var List list;
+        var List prev;
+        var integer h;
+        var IdentMapNode node;
+        let h = IdentMap.hash(name, blockId);
+        let list = table[h];
+        let prev = 0;
+
+        while (~(list = 0)) {
+            let node = list.get();
+            if (Tools.stringEquals(node.getName(), name)
+                 & (node.getBlockId() = blockId)) {
+                 if (prev = 0) {
+                     let table[h] = list.getNext();
+                 } else {
+                     do prev.setNext(list.getNext());
+                 }
+                 do list.setNext(0);
+                 do list.dispose();
+                 do node.dispose();
+                 return true;
+            }
+            let prev = list;
+            let list = list.getNext();
+            do Display.printConstln("next");
+        }
+        return false;
+    }
+
+    method void dispose() {
+        var List list;
+        var integer i;
+        let i = 0;
+        while (i < TAB_SZ) {
+            let list = table[i];
+            if (~(list = 0)) {
+                do list.dispose();
+            }
+            let i = i + 1;
+        }
+        do table.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}
