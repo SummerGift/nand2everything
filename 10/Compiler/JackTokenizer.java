@@ -7,10 +7,48 @@ import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+enum tokenTypeTokenizer{
+    KEYWORD,
+    SYMBOL,
+    INDENTIFIER,
+    INT_CONST,
+    STRING_CONST
+}
+
+enum keywordType{
+    CLASS,
+    METHOD,
+    INT,
+    FUNCTION,
+    BOOLEN,
+    CONSTRUCTOR,
+    CHAR,
+    VOID,
+    VAR,
+    STATIC,
+    FIELD,
+    LET,
+    DO,
+    IF,
+    ELSE,
+    WHILE,
+    RETURN,
+    TRUE,
+    FALSE,
+    NULL,
+    THIS
+}
+
+
+
 public class JackTokenizer {
+
+    static String curToken = null;
 
     public JackTokenizer(String fileName) {
         String fileContent = getFileContent(fileName);
+
+        System.out.println(fileContent);
     }
 
     public void hasMoreTokens() {
@@ -85,8 +123,6 @@ public class JackTokenizer {
             write.write(sourConString);
             write.close();
             read.close();
-            System.out.println(sourConString);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
