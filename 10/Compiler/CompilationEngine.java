@@ -4,7 +4,6 @@
  */
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,7 +22,7 @@ public class CompilationEngine {
             BufferedReader read = new BufferedReader(isr);
             OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(desFile));
             BufferedWriter write = new BufferedWriter(osw);
-            
+
             StringBuilder fBuilder = new StringBuilder();
 
             while ((stringLine = read.readLine()) != null) {
@@ -32,22 +31,27 @@ public class CompilationEngine {
                     continue;
                 }
 
-                if (stringLine.startsWith("//")){
+                if (stringLine.startsWith("//")) {
                     continue;
                 }
 
                 Pattern p = Pattern.compile("\\s*|\t|\r|\n");
                 Matcher m = p.matcher(stringLine);
                 wtrteLine = m.replaceAll("");
-                
+
                 fBuilder.append(wtrteLine);
             }
 
-            write.write(fBuilder.toString());
+            String sourConString = fBuilder.toString();
+            Pattern p = Pattern.compile("(?<!:)\\/\\/.*|\\/\\*(\\s|.)*?\\*\\/");
+            Matcher m = p.matcher(sourConString);
+            sourConString = m.replaceAll("");
+
+            write.write(sourConString);
             write.close();
             read.close();
 
-            System.out.println(fBuilder.toString());
+            System.out.println(sourConString);
         } catch (Exception e) {
             e.printStackTrace();
         }
