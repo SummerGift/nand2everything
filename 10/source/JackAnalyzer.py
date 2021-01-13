@@ -4,6 +4,7 @@ import sys
 import os
 import glob
 
+
 class JackAnalyzer():
     @classmethod
     def run(cls, input_file, output_file):
@@ -26,7 +27,11 @@ class JackAnalyzer():
         return "./compiled/{}/{}{}".format(dir_name, file_name, ext_name)
 
 
-if __name__ == "__main__" and len(sys.argv) == 2:
+def main():
+    if len(sys.argv) != 2:
+        print("Must specific a source code directory.")
+        return
+
     arg = sys.argv[1]
 
     # determine output file names
@@ -43,7 +48,12 @@ if __name__ == "__main__" and len(sys.argv) == 2:
         print("output directory already exists. continuing")
 
     for input_file_name in files:
+        print("filename : " + input_file_name)
         output_file_name = JackAnalyzer.xml_output_file_for(input_file_name)
         output_file = open(output_file_name, 'w')
         input_file = open(input_file_name, 'r')
         JackAnalyzer.run(input_file, output_file)
+
+
+if __name__ == '__main__':
+    main()
