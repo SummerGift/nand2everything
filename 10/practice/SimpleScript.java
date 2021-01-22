@@ -34,7 +34,7 @@ public class SimpleScript {
             verbose = true;
             System.out.println("verbose mode");
         }
-        System.out.println("Simple script language!");
+        System.out.println("Simple script language from SummerGift :)");
 
         SimpleParser parser = new SimpleParser();
         SimpleScript script = new SimpleScript();
@@ -47,7 +47,7 @@ public class SimpleScript {
             try {
                 String line = reader.readLine().trim();
                 if (line.equals("exit();")) {
-                    System.out.println("good bye!");
+                    System.out.println("Thank for playing with Summer Script :)");
                     break;
                 }
                 scriptText += line + "\n";
