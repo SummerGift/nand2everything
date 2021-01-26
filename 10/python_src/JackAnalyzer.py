@@ -23,7 +23,11 @@ class JackAnalyzer():
         return "{}/{}{}".format(dir_name, file_name, ext_name)
 
 
-if __name__ == "__main__" and len(sys.argv) == 2:
+def main():
+    if len(sys.argv) != 2:
+        print("Warning: Please type in your source folder path.")
+        return
+
     arg = sys.argv[1]
 
     # determine output file names
@@ -41,3 +45,7 @@ if __name__ == "__main__" and len(sys.argv) == 2:
         output_file = open(output_file_name, 'w')
         input_file = open(input_file_name, 'r')
         JackAnalyzer.run(input_file, output_file)
+
+
+if __name__ == '__main__':
+    main()
