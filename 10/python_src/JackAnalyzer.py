@@ -25,16 +25,16 @@ class JackAnalyzer():
 
 def main():
     if len(sys.argv) != 2:
-        print("Warning: Please type in your source folder path.")
+        print("Warning:Please type in your source folder path.")
         return
 
-    arg = sys.argv[1]
+    pathname = sys.argv[1]
 
     # determine output file names
-    if os.path.isfile(arg):
-        files = [arg]
-    elif os.path.isdir(arg):
-        jack_path = os.path.join(arg, "*.jack")
+    if os.path.isfile(pathname):
+        files = [pathname]
+    elif os.path.isdir(pathname):
+        jack_path = os.path.join(pathname, "*.jack")
         files = glob.glob(jack_path)
 
     for input_file_name in files:
