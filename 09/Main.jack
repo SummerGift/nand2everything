@@ -1,25 +1,47 @@
+// Provides guidance for loan repayment (assuming no interest rate because of limitation of Hack Computer)
+
 class Main {
+   function void main() {
+      var Loan loan;
+      var int principal, desiredMonthlyPayment, desiredMonthsTillPayoff;
+      var char inputMode, ESCCode, PaymentCode, MonthsCode;
 
-    function void main() {
-        // var Fraction a, b, c;
-        // let a = Fraction.new(2 , 8);
-        // do a.print();
-        // do Output.println();
-        // let b = Fraction.new(8 , 16);
-        // do b.print();
-        // do Output.println();
-        // let c = a.plus(b);
-        // do c.print();
-        // do Output.println();
-        // do Output.printInt(a.getNumerator());
-        // do Output.println();
+      // CONSTANTS
+      let ESCCode = 140;
+      let PaymentCode = 80;
+      let MonthsCode = 77;
 
-        var List v;
-        let v = List.new(5, null);
-        do v.print();
-        let v = List.new(8, v);
-        do v.print();
+      // Initialize View
+      do View.welcomePrompt();
 
-        return;
-    }
+      // Initialize principal / loan
+      let principal = View.getLoanPrincipal();
+      let loan = Loan.new(principal);
+
+      // Get initial input
+      let inputMode = View.getInputMode();
+
+      while (~(inputMode = ESCCode)) {
+        if (inputMode = PaymentCode) {
+          let desiredMonthlyPayment = View.getDesiredMonthlyPayment();
+          do loan.setMonthlyPayment(desiredMonthlyPayment);
+        }
+
+        if (inputMode = MonthsCode) {
+          let desiredMonthsTillPayoff = View.getDesiredMonthsTillPayoff();
+          do loan.setMonthsTillPayoff(desiredMonthsTillPayoff);
+        }
+
+        do Screen.clearScreen();
+        do View.displayLoanStatusFor(loan);
+        let inputMode = View.getInputMode();
+      }
+
+      do View.printSummaryExit();
+
+      // free
+      do Memory.deAlloc(loan);
+
+      return;
+   }
 }
