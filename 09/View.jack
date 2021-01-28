@@ -20,7 +20,76 @@ class View {
     do Output.printString("3 for CHINA, ShangHai, i love this city.");
     do Output.println();
     do Output.println();
+    do Output.printString("4 for Exit.");
+    do Output.println();
+    do Output.println();
     do Output.printString("Have fun!!!");
+    do Output.println();
+    do Output.println();
+    return;
+  }
+
+  function void welcomeNanYang() {
+    do Output.printString("welcome to NanYang.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("Nanyang is my hometown, it has beautiful scenery, and warm people, which aspect of Nanyang do you want to know?");
+    do Output.println();
+    do Output.println();
+    do Output.printString("1 for National culture");
+    do Output.println();
+    do Output.println();
+    do Output.printString("2 for Food.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("3 for scenery.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("4 for Exit.");
+    do Output.println();
+    do Output.println();
+    return;
+  }
+
+  function void welcomeBeiJing() {
+    do Output.printString("welcome to BeiJing.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("Beijing is the capital of China, home to the Great Wall, the Forbidden City, and the Gogu buns you'll want to try., which aspect of BeiJing do you want to know?");
+    do Output.println();
+    do Output.println();
+    do Output.printString("1 for National culture");
+    do Output.println();
+    do Output.println();
+    do Output.printString("2 for Food.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("3 for scenery.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("4 for Exit.");
+    do Output.println();
+    do Output.println();
+    return;
+  }
+
+  function void welcomeShangHai() {
+    do Output.printString("welcome to ShangHai.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("Shanghai is my favorite city, I have always lived here, it is a global metropolis, where technology is leading the world, which aspect of ShangHai do you want to know?");
+    do Output.println();
+    do Output.println();
+    do Output.printString("1 for National culture");
+    do Output.println();
+    do Output.println();
+    do Output.printString("2 for Food.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("3 for scenery.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("4 for Exit.");
     do Output.println();
     do Output.println();
     return;
@@ -35,63 +104,17 @@ class View {
     return dest;
   }
 
-  function char getInputMode() {
-    var int inputMode;
+  function int getChoice() {
+    var int num;
 
-    do Output.printString("Please select one of the following options.");
-    do Output.printString("ESC to exit, p to enter a monthly payment, m to enter the desired months till payoff");
+    let num = Keyboard.readInt("Enter the interest of your choice: ");
     do Output.println();
-    do Output.println();
-    let inputMode = Keyboard.readChar();
-    do Output.println();
-    do Output.println();
-
-    return inputMode;
+    return num;
   }
 
-  function int getDesiredMonthlyPayment() {
-    var int monthlyPaymentInput;
-
-    let monthlyPaymentInput = Keyboard.readInt("Payment mode selected! Please enter a desired monthly payment.");
+  function void printExit() {
+    do Output.printString("Seeya! With you have a good time!!!");
     do Output.println();
-
-    return monthlyPaymentInput;
-  }
-
-  function int getDesiredMonthsTillPayoff() {
-     var int monthsTillPayoffInput;
-
-     let monthsTillPayoffInput = Keyboard.readInt("Months mode selected! Please enter the desired number of months to pay off your loan by");
-     do Output.println();
-
-     return monthsTillPayoffInput;
-  }
-
-  function void printSummaryExit() {
-    do Output.printString("Hope this has been helpful for paying back your loans!");
-    do Output.println();
-
-    return;
-  }
-
-  function void displayLoanStatusFor(Loan loan) {
-    do Output.printString("NEW LOAN STATUS");
-    do Output.println();
-    // Principal
-    do Output.printString("principal: ");
-    do loan.printPrincipal();
-    do Output.printString(", ");
-    // Monthly Payment
-    do Output.printString("Monthly Payment: ");
-    do loan.printMonthlyPayment();
-    do Output.printString(", ");
-    // Months Till Payoff
-    do Output.printString("Months Till Payoff: ");
-    do loan.printMonthsTillPayoff();
-
-    do Output.println();
-    do Output.println();
-
     return;
   }
 }

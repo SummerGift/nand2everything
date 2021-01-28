@@ -1,50 +1,44 @@
-// Provides guidance for loan repayment (assuming no interest rate because of limitation of Hack Computer)
-
 class Main {
 
    function void main() {
-      var Loan loan;
-      var int city;
+      var Dest dest;
+      var int getNumber;
+      var int exit;
       var int toNanYang, toBeiJing, toShangHAI;
 
-      // CONSTANTS
+      // set contant
       let toNanYang = 1;
       let toBeiJing = 2;
       let toShangHAI = 3;
+      let exit = 4;
 
       do View.welcomePrompt();
+      let getNumber = View.getCity();
+      let dest = Dest.new(getNumber);
 
-      let city = View.getCity();
+      while(~(getNumber = exit)){
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 0);
 
+        if (getNumber = toNanYang){
+          do dest.setVisitNanYang(toNanYang);
+        }
 
-      // let loan = Loan.new(principal);
+        if (getNumber = toBeiJing){
+          do dest.setVisitBeiJing(toBeiJing);
+        }
 
-      // Get initial input
-      // let inputMode = View.getInputMode();
+        if (getNumber = toShangHAI){
+          do dest.setVisitShangHai(toShangHAI);
+        }
 
-      // while (~(inputMode = ESCCode)) {
-      //   if (inputMode = PaymentCode) {
-      //     let desiredMonthlyPayment = View.getDesiredMonthlyPayment();
-      //     do loan.setMonthlyPayment(desiredMonthlyPayment);
-      //   }
+        do View.welcomePrompt();
+        let getNumber = View.getCity();
+      }
 
-      //   if (inputMode = MonthsCode) {
-      //     let desiredMonthsTillPayoff = View.getDesiredMonthsTillPayoff();
-      //     do loan.setMonthsTillPayoff(desiredMonthsTillPayoff);
-      //   }
+      do View.printExit();
 
-      //   do Screen.clearScreen();
-      //   do View.displayLoanStatusFor(loan);
-      //   let inputMode = View.getInputMode();
-      // }
-
-      // do View.printSummaryExit();
-
-      // free
-      // do Memory.deAlloc(loan);
-
+      do Memory.deAlloc(dest);
       return;
    }
-
-
 }

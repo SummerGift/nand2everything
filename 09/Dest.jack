@@ -1,20 +1,119 @@
 class Dest{
-    field Fraction principal;
+    field int culture, food, scenery, exit;
 
-    constructor Dest new(int principalAmount) {
-        let principal = Fraction.new(principalAmount, 1);
+    constructor Dest new(int x) {
+        let culture = 1;
+        let food = 2;
+        let scenery = 3;
+        let exit = 4;
         return this;
     }
 
     method void setVisitNanYang(int amount) {
+       var int getNumber;
+       do View.welcomeNanYang();
+       let getNumber = View.getChoice();
+
+        while(~(getNumber = exit)){
+            do Screen.clearScreen();
+            do Output.moveCursor(0, 0);
+
+            if (getNumber = culture){
+                do Output.printString("Nanyang has a long history and is also the hometown of Wolong Zhuge Liang, a military man who is very famous in China.");
+                do Output.println();
+                do Output.println();
+            }
+
+            if (getNumber = food){
+                do Output.printString("Nanyang steamed dishes, Fangcheng chow mein, Huanghekou fried buns, Xinye plate noodles are all very good.");
+                do Output.println();
+                do Output.println();
+            }
+
+            if (getNumber = scenery){
+                do Output.printString("Nanyang belongs to the basin landscape and is surrounded by mountains, with very beautiful mountain scenery..");
+                do Output.println();
+                do Output.println();
+            }
+
+            do View.welcomeNanYang();
+            let getNumber = View.getChoice();
+         }
+
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 0);
         return;
     }
 
     method void setVisitBeiJing(int amount) {
+       var int getNumber;
+       do View.welcomeBeiJing();
+       let getNumber = View.getChoice();
+
+        while(~(getNumber = exit)){
+            do Screen.clearScreen();
+            do Output.moveCursor(0, 0);
+
+            if (getNumber = culture){
+                do Output.printString("Beijing is the capital of China and has many historical monuments. If you come to Beijing, you must climb the Great Wall, visit the Forbidden City and experience the life of the ancient emperors.");
+                do Output.println();
+                do Output.println();
+            }
+
+            if (getNumber = food){
+                do Output.printString("Maybe you'll like Peking duck, dog buns and Old Beijing chicken rolls.");
+                do Output.println();
+                do Output.println();
+            }
+
+            if (getNumber = scenery){
+                do Output.printString("In Beijing you can see not only some historical monuments and various royal gardens, but also many modern high-rise buildings, including the beautiful campus of Tsinghua University and Peking University.");
+                do Output.println();
+                do Output.println();
+            }
+
+            do View.welcomeBeiJing();
+            let getNumber = View.getChoice();
+         }
+
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 0);
         return;
     }
 
     method void setVisitShangHai(int amount) {
+       var int getNumber;
+       do View.welcomeShangHai();
+       let getNumber = View.getChoice();
+
+        while(~(getNumber = exit)){
+            do Screen.clearScreen();
+            do Output.moveCursor(0, 0);
+
+            if (getNumber = culture){
+                do Output.printString("Shanghai, known as the \"Paris of the East\", is a famous historical and cultural city in China, with a deep cultural heritage of modern cities and many historical monuments.");
+                do Output.println();
+                do Output.println();
+            }
+
+            if (getNumber = food){
+                do Output.printString("Pan-fried steamed buns, Nanxiang dumplings, rice cakes with pork ribs, and white chopped chicken, are you going to drool?");
+                do Output.println();
+                do Output.println();
+            }
+
+            if (getNumber = scenery){
+                do Output.printString("Shanghai is a very technological city, and when you come to Shanghai you will want to go sightseeing on the Bund and see this bustling city.");
+                do Output.println();
+                do Output.println();
+            }
+
+            do View.welcomeShangHai();
+            let getNumber = View.getChoice();
+         }
+
+        do Screen.clearScreen();
+        do Output.moveCursor(0, 0);
         return;
     }
 }
