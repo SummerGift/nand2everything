@@ -62,4 +62,26 @@ class Loan {
 
     return;
   }
+  
+  function void draw_heart(int location) {
+    var int memAddress;
+    let memAddress = 16384+location;
+    do Memory.poke(memAddress+0, 0);
+    do Memory.poke(memAddress+32, 0);
+    do Memory.poke(memAddress+64, 6192);
+    do Memory.poke(memAddress+96, 9288);
+    do Memory.poke(memAddress+128, 17028);
+    do Memory.poke(memAddress+160, 2);
+    do Memory.poke(memAddress+192, 0);
+    do Memory.poke(memAddress+224, 0);
+    do Memory.poke(memAddress+256, 4104);
+    do Memory.poke(memAddress+288, 2064);
+    do Memory.poke(memAddress+320, 1056);
+    do Memory.poke(memAddress+352, 960);
+    do Memory.poke(memAddress+384, 0);
+    do Memory.poke(memAddress+416, 0);
+    do Memory.poke(memAddress+448, 0);
+    do Memory.poke(memAddress+480, 0);
+    return;
+  }
 }

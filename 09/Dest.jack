@@ -1,0 +1,20 @@
+class Dest{
+    field Fraction principal;
+
+    constructor Dest new(int principalAmount) {
+        let principal = Fraction.new(principalAmount, 1);
+        return this;
+    }
+
+    method void setVisitNanYang(int amount) {
+        return;
+    }
+
+    method void setVisitBeiJing(int amount) {
+        return;
+    }
+
+    method void setVisitShangHai(int amount) {
+        return;
+    }
+}

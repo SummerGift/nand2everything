@@ -2,23 +2,37 @@
 
 class View {
   function void welcomePrompt() {
-    do Output.printString("Welcome to the SummerGift Game!");
+    do Output.printString("This is a travel city introduction program.");
     do Output.println();
     do Output.println();
-    do Output.printString("The point of this program is to help you think about paying back your loan.");
+    do Output.printString("I will introduce you to some interesting places, have fun!");
     do Output.println();
     do Output.println();
-
+    do Output.printString("You can choose where you want to visit by type in number.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("1 for CHINA, HeNan NanYang, it's my homwtown.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("2 for CHINA, BeiJing, it's our capital.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("3 for CHINA, ShangHai, i love this city.");
+    do Output.println();
+    do Output.println();
+    do Output.printString("Have fun!!!");
+    do Output.println();
+    do Output.println();
     return;
   }
 
-  function int getLoanPrincipal() {
-    var int principal;
+  function int getCity() {
+    var int dest;
 
-    let principal = Keyboard.readInt("Enter the principal of your loan: ");
+    let dest = Keyboard.readInt("Enter the destination of your choice: ");
     do Output.println();
 
-    return principal;
+    return dest;
   }
 
   function char getInputMode() {
