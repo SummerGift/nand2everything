@@ -69,3 +69,16 @@ All right, let's go to the next project.
 ### [Project 9 High-Level Language](09)
 
 I am going to learn how a programming language is designed and implemented in project 9. Suddenly I realized that if we can understand the principle of designing and implementation, it means we can get a deep understanding of many programming languages.
+
+Finally finished project 9, I wrote an applet introducing Chinese cities using jack, a programming language of my own design, keep up the good work!
+
+### [Project 10 Compiler I: Syntax Analysis](10)
+
+Project 10, the compiler front-end, was a big challenge for me. Understanding lexical parsing and syntactic parsing and implementing them by hand was not an easy task, but in any case, completion is more important than perfection.
+
+### [Project 11 Compiler II: Code Generation](11)
+
+Now I start to finish the second part of the compiler, code generation, which is the conversion of the abstract syntax tree compiled on the front end of the compiler into code that can actually run on the virtual machine.
+
+
+
