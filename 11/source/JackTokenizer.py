@@ -109,6 +109,8 @@ class JackTokenizer:
             # update next token
             self.advance()
 
+        print(self.current_token);
+
         if not len(self.next_token) > 0:
             self.has_more_tokens = False
             return False
