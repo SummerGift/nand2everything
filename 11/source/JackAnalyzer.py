@@ -6,7 +6,7 @@ import glob
 import shutil
 
 
-class JackAnalyzer():
+class JackAnalyzer:
     @classmethod
     def run(cls, input_file, output_file):
         tokenizer = JackTokenizer(input_file)

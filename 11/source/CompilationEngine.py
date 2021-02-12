@@ -1,13 +1,13 @@
-class CompilationEngine():
+class CompilationEngine:
     """
     compiles a jack source file from a jack tokenizer into xml form in output_file
     """
 
-    TERMINAL_TOKEN_TYPES = [ "STRING_CONST", "INT_CONST", "IDENTIFIER", "SYMBOL"]
-    TERMINAL_KEYWORDS = [ "boolean", "class", "void", "int" ]
-    CLASS_VAR_DEC_TOKENS = [ "static", "field" ]
-    SUBROUTINE_TOKENS = [ "function", "method", "constructor" ]
-    STATEMENT_TOKENS = [ 'do', 'let', 'while', 'return', 'if' ]
+    TERMINAL_TOKEN_TYPES = ["STRING_CONST", "INT_CONST", "IDENTIFIER", "SYMBOL"]
+    TERMINAL_KEYWORDS = ["boolean", "class", "void", "int"]
+    CLASS_VAR_DEC_TOKENS = ["static", "field"]
+    SUBROUTINE_TOKENS = ["function", "method", "constructor"]
+    STATEMENT_TOKENS = ['do', 'let', 'while', 'return', 'if']
     STARTING_TOKENS = {
         'var_dec': ['var'],
         'parameter_list': ['('],
@@ -41,7 +41,7 @@ class CompilationEngine():
         '&gt;',
         '='
     ]
-    UNARY_OPERATORS = [ '-', '~' ]
+    UNARY_OPERATORS = ['-', '~']
 
     def __init__(self, tokenizer, output_file):
         self.tokenizer = tokenizer
@@ -128,7 +128,7 @@ class CompilationEngine():
 
             if self._starting_token_for('var_dec'):
                 self.compile_var_dec()
-            elif self._statement_token() :
+            elif self._statement_token():
                 self.compile_statements()
             else:
                 self._write_current_terminal_token()
@@ -196,8 +196,10 @@ class CompilationEngine():
         # experimental
         def do_terminator_func():
             return self._not_terminal_token_for('do')
+
         def do_condition_func():
             return self._starting_token_for('expression_list')
+
         def do_do_something_func():
             return self.compile_expression_list()
 
@@ -269,10 +271,13 @@ class CompilationEngine():
 
         def not_terminate_func():
             return self._not_terminal_token_for('if')
+
         def condition_func():
             return self._statement_token()
+
         def do_something_special_func():
             return self.compile_statements()
+
         self.compile_statement_body(not_terminate_func, condition_func, do_something_special_func)
 
         # compile else
@@ -336,7 +341,6 @@ class CompilationEngine():
                 # term takes care of advancing..
 
         self._write_current_outer_tag(body="/expression")
-
 
     # (expression (',' expression)* )?
     def compile_expression_list(self):
@@ -409,17 +413,15 @@ class CompilationEngine():
 
         if self._not_terminal_token_for(keyword_token='return', position='next'):
             self.compile_expression()
-        else: # write return and ; for void
+        else:  # write return and ; for void
             self._write_current_terminal_token()
             self.tokenizer.advance()
             self._write_current_terminal_token()
 
         self._write_current_outer_tag(body="/returnStatement")
 
-
     def _write_current_outer_tag(self, body):
         self.output_file.write("<{}>\n".format(body))
-
 
     def _write_current_terminal_token(self):
         # conform to expected xml

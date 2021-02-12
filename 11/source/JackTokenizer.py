@@ -1,4 +1,4 @@
-class JackTokenizer():
+class JackTokenizer:
     KEYWORDS = [
         'class',
         'constructor',
@@ -34,6 +34,7 @@ class JackTokenizer():
     goes through a .jack input file and produces a stream of tokens
     ignores all whitespace and comments
     """
+
     def __init__(self, input_file):
         self.input_file = input_file
         self.tokens_found = []
@@ -65,7 +66,7 @@ class JackTokenizer():
                 char = self.input_file.read(1)
             continue
 
-       # process found token
+        # process found token
         token = ""
 
         if self._is_string_const_delimeter(char):
@@ -89,7 +90,7 @@ class JackTokenizer():
 
             # go back 1 char that was peek ahead
             self.input_file.seek(last_pos)
-        else: # symbol
+        else:  # symbol
             # adjust for stupid xml
             if char in self.SYMBOL_CONVERSIONS:
                 token = self.SYMBOL_CONVERSIONS[char]
@@ -101,7 +102,7 @@ class JackTokenizer():
             self.current_token = self.next_token
             self.next_token = token
             self.tokens_found.append(token)
-        else: # initial setup
+        else:  # initial setup
             self.current_token = token
             self.next_token = token
             self.tokens_found.append(token)
@@ -145,10 +146,11 @@ class JackTokenizer():
         return char == "\""
 
     def _is_start_of_comment(self, char, next_2_chars):
-       # comment of form: // or */
-       single_line_comment = next_2_chars[0] == self.COMMENT_OPERATORS[0]
-       # comment of form: /**
-       multi_line_comment = char == self.COMMENT_OPERATORS[0] and next_2_chars == "**"
-       # comment of form:  * comment
-       part_of_multi_line_comment = char == self.COMMENT_OPERATORS[1] and next_2_chars[0].isspace() and next_2_chars[1] != '('
-       return single_line_comment or multi_line_comment or part_of_multi_line_comment
+        # comment of form: // or */
+        single_line_comment = next_2_chars[0] == self.COMMENT_OPERATORS[0]
+        # comment of form: /**
+        multi_line_comment = char == self.COMMENT_OPERATORS[0] and next_2_chars == "**"
+        # comment of form:  * comment
+        part_of_multi_line_comment = char == self.COMMENT_OPERATORS[1] and next_2_chars[0].isspace() and next_2_chars[
+            1] != '('
+        return single_line_comment or multi_line_comment or part_of_multi_line_comment
