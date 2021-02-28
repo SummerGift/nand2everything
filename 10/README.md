@@ -12,7 +12,7 @@
 说实话手动实现一个编译器前端对我来说确实是个比较困难的工作，但是我感觉这项技能似乎用到的地方很多，比如说：
 
 - 理解不同语言之间的异同点
-- 根据经 BNF 理解某段代码是否符合语言规范
+- 根据 BNF 理解某段代码是否符合语言规范
 - 理解自动生成程序流程图的过程
 - 更快地学会一门新的语言
 
@@ -79,4 +79,17 @@ grun Hello tokens -tokens hello.txt
   ```shell
   grun Hello r -tree -gui # 图形化的方式展示语法树
   ```
+
+### Options briefly
+
+| Options                | 作用                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| -tokens                | 打印出字元流（tokens）                                       |
+| -tree                  | 使用 LISP 形式打印出解析树                                   |
+| -gui                   | 使用对话框的形式可视化展示解析树                             |
+| -ps file.ps            | generates a visual representation of the parse tree in PostScript and stores it in file.ps. The parse tree figures in this chapter were generated with -ps. |
+| -encoding encodingname | specifies the test rig input file encoding if the current locale would not read the input properly. |
+| -trace                 | 按照规则进入和退出的时候打印规则名称以及当前 token           |
+| -diagnostics           | 在解析过程中打开诊断信息。这个选项产生的信息只是为了一些非一般的情况，例如模棱两可的输入短语 |
+| -SLL                   | 使用一种更快速但是更弱的解析策略                             |
 
