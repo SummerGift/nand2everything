@@ -1,4 +1,4 @@
-# JACK 语言编译器前端实现
+# 编译器前端实现研究
 
 实现一种语言的编译器前端有多种方法，主要包括两个部分：
 
@@ -31,18 +31,27 @@
 
 ### 利用 ANTLR 进行词法解析
 
-- 编译词法规则
+用于测试的语法规则如下：
+
+```c
+grammar Hello;            // Define a grammar called Hello
+r  : 'hello' ID ;         // match keyword hello followed by an identifier
+ID : [a-z]+ ;             // match lower-case identifiers
+WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines, \r (Windows)
+```
+
+1. 使用 ANTLR 编译语法规则
 
 ```
 antlr Hello.g4
 ```
-- 编译规则文件，生成词法分析器
+2. 使用 Java 编译 ANTLR 生成的文件，生成语法分析器
 
 ```
 javac *.java
 ```
 
-- 调用生成的词法分析器，打印出对 hello.txt 的词法分析结果
+- 调用生成的分析器，打印出对 hello.txt 的语法分析结果
 
 ```shell
 grun Hello tokens -tokens hello.txt
@@ -54,31 +63,33 @@ grun Hello tokens -tokens hello.txt
 
 一般情况下，如果词法解析文件比较复杂，那么会将词法解析规则单独放置在一个文件中，然后在语法解析规则文件中引用词法解析规则文件。当然如果词法解析非常简单，那么自然可以将词法解析与语法解析放置在一个文件中。
 
-- 生成解析器与词法分析器
+1. 生成解析器与词法分析器
 
-  ```
-  antlr Hello.g4
-  ```
+```
+antlr Hello.g4
+```
 
-- 编译规则文件，生成语法分析器
+2. 编译规则文件，生成语法分析器
 
-  ```
-  javac *.java
-  ```
+```
+javac *.java
+```
 
-- 利用 `grun` 验证规则文件
+3. 利用 `grun` 验证规则文件
 
-  ```shell
-  grun Hello r -tokens
-  ```
+```shell
+grun Hello r -tokens
+```
 
-  ```
-  grun Hello r -tree
-  ```
+```
+grun Hello r -tree
+```
 
-  ```shell
-  grun Hello r -tree -gui # 图形化的方式展示语法树
-  ```
+```shell
+grun Hello r -tree -gui # 图形化的方式展示语法树
+```
+
+运行上述命令后会要求输入将要被解析的文本，输入相应文本后使用在 unix 下使用 `ctrl + d` 或者在 windows 下按下 `Ctrl+Z` 结束输入。
 
 ### Options briefly
 
@@ -120,4 +131,54 @@ match(';');
 在自然语言中模棱两可的语句可能会比较好玩，但是会对基于计算机的语言应用造成问题。为了解释或者翻译一个短语，一个程序必须独一无二地理解它的含义。这也就是说我们必须提供没有二义性的语法，这样产生的解析器才可以用精确地方式匹配输入的短语。
 
 在后续生成解析器的过程中，要逐渐学会处理各种二义性问题。在一些情况下，如果输入的词组符合多重选择，ANTLR 会选择可选项的第一个作为当前匹配项。
+
+### Parse-Tree Listeners and Visitors
+
+ANTLR  provides  support  for  two  tree-walking  mechanisms  in  its  runtimelibrary.  
+
+这两种机制用来连接应用专用的代码和解析器
+
+####Parse-Tree Listeners
+
+####  Parse-Tree Visitors
+
+#### Parsing Terms
+
+- Parser
+
+  一个解析器通过根据语法的规则检查句子的结构来检查句子是否属于特定的语言。对于解析过程最好的类比是穿过一个迷宫，将句子中的词组和写在一路地板上的词组作对比，来从入口走到出口。
+
+- Recursive-descent parser
+
+  这是一种特定类型的自顶向下的解析器，为语法中的每一个规则都实现了一个函数。
+
+- Lookahead
+
+  解析器通过比较每一个可选择路径起始的符号，使用 lookahead 来做决定。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
