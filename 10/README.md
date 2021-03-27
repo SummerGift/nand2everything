@@ -156,7 +156,13 @@ ANTLR  provides  support  for  two  tree-walking  mechanisms  in  its  runtimeli
 
   解析器通过比较每一个可选择路径起始的符号，使用 lookahead 来做决定。
 
+### 使用 ANTLR 创建语言应用
 
+当我们编写好语法描述文件后，可以使用 ANTLR 来产生一系列文件，这些文件先前都需要手动编写。
+
+- ArrayInitParser
+
+  
 
 
 
