@@ -162,7 +162,9 @@ ANTLR  provides  support  for  two  tree-walking  mechanisms  in  its  runtimeli
 
 - ArrayInitParser
 
-  
+### 将语法规则放入不同文件
+
+我们可以将语法规则描述分为解析解析器规则和词法器规则。因为不同的编程语言在从词法的角度来说他们有相当程度的重叠。例如，标识符和数字在多种语言中一般是相同的。将词法规则提出到一个模块中意味着我们可以将他使用到不同的解析语法中。
 
 
 
