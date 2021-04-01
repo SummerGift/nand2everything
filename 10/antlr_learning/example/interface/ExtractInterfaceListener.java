@@ -15,7 +15,7 @@ public class ExtractInterfaceListener extends JavaBaseListener {
     /** Listen to matches of classDeclaration */
     @Override
     public void enterClassDeclaration(JavaParser.ClassDeclarationContext ctx){
-        System.out.println("interface I"+ctx.Identifier()+" {");
+        System.out.println("interface I "+ctx.Identifier()+" {");
     }
     @Override
     public void exitClassDeclaration(JavaParser.ClassDeclarationContext ctx) {

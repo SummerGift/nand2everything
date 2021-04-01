@@ -166,13 +166,29 @@ ANTLR  provides  support  for  two  tree-walking  mechanisms  in  its  runtimeli
 
 我们可以将语法规则描述分为解析解析器规则和词法器规则。因为不同的编程语言在从词法的角度来说他们有相当程度的重叠。例如，标识符和数字在多种语言中一般是相同的。将词法规则提出到一个模块中意味着我们可以将他使用到不同的解析语法中。
 
+监听者和访问者很棒因为他们使得应用专用的代码和语法分开，使得语法更易读，而且避免与特定的应用纠缠在一起。
 
+### Island Grammars
 
+Dealing with Different Formats in the Same File.
 
+ANTLR provides a well-known lexer feature called lexical modes that lets usdeal easily with files containing mixed formats. The basic idea is to have thelexer  switch  back  and  forth  between  modes  when  it  sees  special  sentinel character sequences.
 
+```sh
+grun XML tokens -tokens t.xml
+```
 
+In this case, we use the grammar name fol-lowed by special rule name tokens to tell the test rig it should run the lexerbut not the parser. Then, we use test rig option -tokens to print out the list ofmatched tokens.
 
+Knowledge of the token stream flowing from the lexer to the parser can bepretty useful. For example, some translation problems are really just tweaksof  the  input.  We  can  sometimes  get  away  with  altering  the  original  tokenstream rather than generating completely new output.
 
+### Rewriting the Input Stream
+
+With only a few lines of code, we were able to tweak a Java class definitionwithout disturbing anything outside of our insertion point. This strategy isvery  effective  for  the  general  problem  of  source  code  instrumentation  or refactoring. The TokenStreamRewriter is a powerful and extremely efficient meansof manipulating a token stream.
+
+### Sending Tokens on Different Channels
+
+The ->channel(HIDDEN) is a lexer command like the ->skip we discussed before.In this case, it sets the channel number of these tokens so that it’s ignoredby the parser. The token stream still maintains the original sequence of tokensbut skips over the off-channel tokens when feeding the parser.
 
 
 
