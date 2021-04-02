@@ -188,11 +188,17 @@ With only a few lines of code, we were able to tweak a Java class definitionwith
 
 ### Sending Tokens on Different Channels
 
-The ->channel(HIDDEN) is a lexer command like the ->skip we discussed before.In this case, it sets the channel number of these tokens so that it’s ignoredby the parser. The token stream still maintains the original sequence of tokensbut skips over the off-channel tokens when feeding the parser.
+The ->channel(HIDDEN) is a lexer command like the ->skip we discussed before.In this case, it sets the channel number of these tokens so that it’s ignored by the parser. The token stream still maintains the original sequence of tokensbut skips over the off-channel tokens when feeding the parser.
 
+不要的字元流可以输出到另外的通道以保留下来，而不会丢失这些字元。
 
+## Designed Grammars
 
+Languages also tend to be similar because designers follow common notation from mathematics. Even at the lexical level, languages tend to reuse the same structures, such identifiers, integers, strings, and so on. The constraints of word order and dependency, derived from natural language, blossom into four abstract computer language patterns.
 
+设计语法规则和编程是非常相像的，我们需要搞清楚我们需要哪些规则，这些规则是什么，以及哪一条规则是起始规则，就像是 C 语言中的 main() 函数。
+
+编程需要先写伪代码，做架构设计等工作，画画不也是这样吗？写文章不也是这样吗？看来这些工作都有相同之处，作为一个作者，也不能仅仅考虑某一段话该怎么写，而是要考虑整篇文章该怎么布局，甚至整本书是什么结构。我想作为一个软件工程师也应该是一样的，只是这个过程开始的时候有些不习惯，但是如果能突破这个坎，将会有更大的收获，能力也能达到下个级别。
 
 
 
