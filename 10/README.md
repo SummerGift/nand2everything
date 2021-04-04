@@ -200,13 +200,53 @@ Languages also tend to be similar because designers follow common notation from 
 
 编程需要先写伪代码，做架构设计等工作，画画不也是这样吗？写文章不也是这样吗？看来这些工作都有相同之处，作为一个作者，也不能仅仅考虑某一段话该怎么写，而是要考虑整篇文章该怎么布局，甚至整本书是什么结构。我想作为一个软件工程师也应该是一样的，只是这个过程开始的时候有些不习惯，但是如果能突破这个坎，将会有更大的收获，能力也能达到下个级别。
 
+We need to focus on the common language patterns: sequence, choice, token dependence, and nested phrase.
 
+### Sequence
 
+retr : 'RETR' INT '\n'; match keyword integer newline sequence
 
+We use grammar rules to label language structures just like we label statement lists as functions in programming language.
 
++ `+` : one or more
++ `*` : zero or more
++ `?` : zero or one
 
+### Choice
 
+To express the notion of choice in a language, we use | as the “or” operatorin ANTLR rules to separate grammatical choices called alternatives or produc-tions. Grammars are full of choices.
 
+Returning  to  our  CSV  grammar,  we  can  make  a  more  flexible field  rule  byallowing the choice of integers or strings.
+
+`field : INT | STRING ;`
+
+### Token Dependency
+
+`vector : '[' INT+ ']';`
+
+### Nested Phrase
+
+So, if the pseudocode for a rule references itself, we are going to need a recursive(self-referencing) rule.
+
+### ANTLR's core grammar notation
+
+![image-20210404103440724](figures/image-20210404103440724.png)
+
+### Precedence, Left Recursion, and Associativity
+
+- Precedence
+
+ANTLR  resolves  ambiguities  in  favor  of  the  alternative  given  first,implicitly allowing us to specify operator precedence.
+
+- Associativity
+
+By default, ANTLR associates operators left to right as we’d expect for * and+. Some operators like exponentiation group right to left, though, so we haveto manually specify the associativity on the operator token using option assoc.Here’s an expression rule that properly interprets input like 2^3^4 as 2^(3^4):
+
+![image-20210404114636577](figures/image-20210404114636577.png)
+
+- Left Recursion
+
+While ANTLR v4 can handle direct left recursion, it can’t handle indirect leftrecursion. 
 
 
 
