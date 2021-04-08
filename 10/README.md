@@ -248,7 +248,18 @@ By default, ANTLR associates operators left to right as we’d expect for * and+
 
 While ANTLR v4 can handle direct left recursion, it can’t handle indirect leftrecursion. 
 
+## Recognizing Common Lexical Structures
+
+Rule ID could also match keywords such as enum and for, which means there’smore than one rule that could match the same string. To make this clearer,consider how ANTLR handles combined lexer/parser grammars such as this.ANTLR collects and separates all of the string literals and lexer rules fromthe parser rules. Literals such as 'enum' become lexical rules and go immediately after the parser rules but before the explicit lexical rules.
+
+ANTLR lexers resolve ambiguities between lexical rules by favoring the rulespecified  first.  That  means  your ID  rule  should  be  defined  after  all  of  yourkeyword rules, like it is here relative to FOR. ANTLR puts the implicitly gener-ated lexical rules for literals before explicit lexer rules, so those always havepriority. In this case, 'enum' is given priority over ID automatically.
+
+![image-20210404160205237](figures/image-20210404160205237.png)
+
+fragment 是用来表示一些词法片段的，使得词法规则看起来更优雅。
 
 
 
+By prefixing the rule with fragment, we let ANTLR know that therule will be used only by other lexical rules. It is not a token in and of itself.This means that we could not reference DIGIT from a parser rule.
 
+git -C "/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core" remote set-url origin https://github.com/Homebrew/homebrew-core

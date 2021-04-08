@@ -1,4 +1,4 @@
-lexer grammar Jack; //lexer关键字意味着这是一个词法规则文件，名称是Hello，要与文件名相同
+lexer grammar Jack;
 
 //关键字
 Class: 'class';
@@ -51,7 +51,6 @@ LINE_COMMENT:       '//' ~[\r\n]*    -> channel(HIDDEN);
 
 // Identifier
 IDENTIFIER:         Letter LetterOrDigit*;
-
 
 // Fragment rules
 fragment LetterOrDigit
