@@ -258,8 +258,11 @@ ANTLR lexers resolve ambiguities between lexical rules by favoring the rulespeci
 
 fragment 是用来表示一些词法片段的，使得词法规则看起来更优雅。
 
-
-
 By prefixing the rule with fragment, we let ANTLR know that therule will be used only by other lexical rules. It is not a token in and of itself.This means that we could not reference DIGIT from a parser rule.
 
 git -C "/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core" remote set-url origin https://github.com/Homebrew/homebrew-core
+
+## parsing R language
+
+For our purposes, we don't have to care about their meaning because we're building only a parser, not an interpreter or compiler.
+
