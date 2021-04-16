@@ -266,3 +266,14 @@ git -C "/usr/local/Homebrew/Library/Taps/homebrew/homebrew-core" remote set-url 
 
 For our purposes, we don't have to care about their meaning because we're building only a parser, not an interpreter or compiler.
 
+## Decoupling grammars from application-specific code
+
+ A listener is an object that responds to rule entry and exit events (phrase recongnition events) triggered by a parse-tree walker as it discovers and finishes nodes.
+
+To support situations where an application must control how a tree is walked, ANTLR-generated parse trees also support the well-known tree visitor pattern.
+
+The biggest difference between listeners and visitors is that listener methodsaren’t responsible for explicitly calling methods to walk their children. Visitors,on the other hand, must explicitly trigger visits to child nodes to keep the tree traversal going.
+
+## listener 模式与 visitor 模式的区别
+
+分别使用 listener 模式与 visitor 模式实现类似功能的语言应用，对比这两种模式的区别。
