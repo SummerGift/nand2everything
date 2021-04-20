@@ -1,4 +1,4 @@
-// Generated from /Users/mac/work/nand2everything/10/antlr_learning/listeners/properfile/PropertyFile.g4 by ANTLR 4.8
+// Generated from PropertyFile.g4 by ANTLR 4.9
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class PropertyFileParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.8", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.9", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -99,6 +99,19 @@ public class PropertyFileParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_file; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PropertyFileListener ) ((PropertyFileListener)listener).enterFile(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PropertyFileListener ) ((PropertyFileListener)listener).exitFile(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof PropertyFileVisitor ) return ((PropertyFileVisitor<? extends T>)visitor).visitFile(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final FileContext file() throws RecognitionException {
@@ -142,6 +155,19 @@ public class PropertyFileParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_prop; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PropertyFileListener ) ((PropertyFileListener)listener).enterProp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PropertyFileListener ) ((PropertyFileListener)listener).exitProp(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof PropertyFileVisitor ) return ((PropertyFileVisitor<? extends T>)visitor).visitProp(this);
+			else return visitor.visitChildren(this);
+		}
 	}
 
 	public final PropContext prop() throws RecognitionException {
