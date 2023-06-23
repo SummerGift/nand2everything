@@ -1,35 +1,43 @@
-import re
+class JackTokenizer():
+    KEYWORDS = [
+        'class',
+        'constructor',
+        'function',
+        'method',
+        'field',
+        'static',
+        'var',
+        'int',
+        'char',
+        'boolean',
+        'void',
+        'true',
+        'false',
+        'null',
+        'this',
+        'let',
+        'do',
+        'if',
+        'else',
+        'while',
+        'return'
+    ]
+    SYMBOL_CONVERSIONS = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '\"': '&quot;',
+        '&': '&amp;'
+    }
+    COMMENT_OPERATORS = ["/", "*"]
 
-# Define the token types and their regular expressions
-TOKENS = [
-    ("KEYWORD", r"\b(if|else|while|for)\b"),
-    ("IDENTIFIER", r"\b[a-zA-Z_][a-zA-Z0-9_]*\b"),
-    ("NUMBER", r"\b\d+\b"),
-    ("OPERATOR", r"[+\-*/]"),
-    ("WHITESPACE", r"\s+"),
-]
+    """
+    goes through a .jack input file and produces a stream of tokens
+    ignores all whitespace and comments
+    """
+    def __init__(self, input_file):
+        self.input_file = input_file
+        self.tokens_found = []
+        self.current_token = None
+        self.next_token = None
+        self.has_more_tokens = True
 
-def tokenize(text):
-    tokens = []
-    position = 0
-
-    while position < len(text):
-        # Try to match each token type at the current position
-        for token_type, pattern in TOKENS:
-            match = re.match(pattern, text[position:])
-            if match:
-                # Store the matched token and its type
-                tokens.append((token_type, match.group(0)))
-                position += len(match.group(0))
-                break
-        else:
-            # No match found, handle the error
-            print(f"Unexpected character '{text[position]}' at position {position}")
-            position += 1
-
-    return tokens
-
-# Example usage
-text = "if x + 42 while"
-tokens = tokenize(text)
-print(tokens)
