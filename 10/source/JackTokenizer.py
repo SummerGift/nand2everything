@@ -37,7 +37,7 @@ class JackTokenizer:
             "&": "&amp;",
         }
 
-    def tokenize(self):
+    def get_tokens_from_file(self):
         tokens = []
         tokens_need = []
         position = 0
@@ -71,6 +71,7 @@ class JackTokenizer:
 
         # Set a tokenizer compare file name
         tfile_name = self.output_file_name.replace(".xml", "T.xml")
+        print("output token filename :", tfile_name)
 
         with open(tfile_name, "w+") as f:
             f.write("<tokens>\n")
@@ -101,3 +102,10 @@ class JackTokenizer:
             f.write("</tokens>\n")
 
         return self.tokens_found
+
+    def get_tokens_count(self):
+        return len(self.tokens_found)
+    
+    def advance(self):
+        return self.tokens_found.pop(0)
+
