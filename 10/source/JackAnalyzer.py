@@ -9,7 +9,9 @@ class JackAnalyzer():
     @classmethod
     def run(cls, input_file_name, output_file_name):
         tokenizer = JackTokenizer(input_file_name, output_file_name)
-        token_need = tokenizer.tokenize()
+        tokenizer.get_tokens_from_file()
+        print(tokenizer.advance())
+        print(tokenizer.tokenType())
 
     @classmethod
     def xml_output_file_for(cls, input_file):

@@ -12,6 +12,7 @@ class JackTokenizer:
         self.output_file_name = output_file_name
         self.tokens_found = []
         self.current_token = None
+        self.current_token_type = None
         self.next_token = None
         self.has_more_tokens = True
 
@@ -35,6 +36,14 @@ class JackTokenizer:
             ">": "&gt;",
             '"': "&quot;",
             "&": "&amp;",
+        }
+
+        self.tokentypes_conversions = {
+            "keyword": "KEYWORD",
+            "symbol": "SYMBOL",
+            "integerConstant": "INT_CONST",
+            "stringConstant": "STRING_CONST",
+            "identifier": "IDENTIFIER",
         }
 
     def get_tokens_from_file(self):
@@ -94,7 +103,7 @@ class JackTokenizer:
 
                 str_out_line = "<{0}> {1} </{0}>".format(token_type, token_value)
 
-                self.tokens_found.append(token_value)
+                self.tokens_found.append({token_type: token_value})
 
                 f.write(str_out_line)
                 f.write("\n")
@@ -106,6 +115,22 @@ class JackTokenizer:
     def get_tokens_count(self):
         return len(self.tokens_found)
     
+    def hasMoreTokens(self):
+        if self.get_tokens_count() > 0:
+            return True
+        else:
+            return False
+
     def advance(self):
-        return self.tokens_found.pop(0)
+        self.current_token = self.tokens_found.pop(0)
+        return self.current_token
+    
+    def tokenType(self):
+        token_keys = self.current_token.keys()
+        token_type = None
+        for key in token_keys:
+            token_type = key
+
+        return self.tokentypes_conversions[token_type]
+
 
