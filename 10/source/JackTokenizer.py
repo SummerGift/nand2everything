@@ -12,7 +12,7 @@ class JackTokenizer:
         self.output_file_name = output_file_name
         self.tokens_found = []
         self.current_token = None
-        self.current_token_type = None
+        self.current_token_value = None
         self.next_token = None
         self.has_more_tokens = True
 
@@ -46,7 +46,7 @@ class JackTokenizer:
             "identifier": "IDENTIFIER",
         }
 
-    def get_tokens_from_file(self):
+    def setup(self):
         tokens = []
         tokens_need = []
         position = 0
@@ -114,23 +114,28 @@ class JackTokenizer:
 
     def get_tokens_count(self):
         return len(self.tokens_found)
-    
+
     def hasMoreTokens(self):
         if self.get_tokens_count() > 0:
             return True
         else:
+            self.has_more_tokens = False
             return False
 
     def advance(self):
         self.current_token = self.tokens_found.pop(0)
         return self.current_token
-    
-    def tokenType(self):
+
+    def current_token_type(self):
         token_keys = self.current_token.keys()
         token_type = None
+
         for key in token_keys:
             token_type = key
 
+        self.current_token_value = self.current_token[token_type]
+
         return self.tokentypes_conversions[token_type]
 
-
+    def current_token_value(self):
+        return self.current_token_value

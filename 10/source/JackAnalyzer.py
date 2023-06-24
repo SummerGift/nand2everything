@@ -1,4 +1,5 @@
 from JackTokenizer import JackTokenizer
+from CompilationEngine import CompilationEngine
 import sys
 import os
 import glob
@@ -9,9 +10,12 @@ class JackAnalyzer():
     @classmethod
     def run(cls, input_file_name, output_file_name):
         tokenizer = JackTokenizer(input_file_name, output_file_name)
-        tokenizer.get_tokens_from_file()
-        print(tokenizer.advance())
-        print(tokenizer.tokenType())
+
+        output_file = open(output_file_name, 'w')
+        compiler = CompilationEngine(tokenizer, output_file)
+        compiler.compile_class()
+        output_file.close()
+
 
     @classmethod
     def xml_output_file_for(cls, input_file):
