@@ -7,8 +7,9 @@ class JackTokenizer:
     ignores all whitespace and comments
     """
 
-    def __init__(self, input_file_name):
+    def __init__(self, input_file_name, output_file_name):
         self.input_file_name = input_file_name
+        self.output_file_name = output_file_name
         self.tokens_found = []
         self.current_token = None
         self.next_token = None
@@ -16,8 +17,7 @@ class JackTokenizer:
 
         # Define the token types and their regular expressions
         self.token_define = [
-            ("comment_type1", r"\/\/[^\n]*"),
-            ("comment_type2", r"\/\*\*[^\n]*"),
+            ("comments", r"(/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/)|(//.*)"),
             (
                 "keyword",
                 r"\b(class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return)\b",
@@ -59,19 +59,20 @@ class JackTokenizer:
                 print(f"Unexpected character '{text[position]}' at position {position}")
                 position += 1
 
+        # put the tokens we need to a new list
         for token in tokens:
             if token[0] == "whitespace":
                 continue
 
-            if token[0] == "comment_type1":
-                continue
-
-            if token[0] == "comment_type2":
+            if token[0] == "comments":
                 continue
 
             tokens_need.append({token[0]: token[1]})
 
-        with open("MAINT.xml", "w+") as f:
+        # Set a tokenizer compare file name
+        tfile_name = self.output_file_name.replace(".xml", "T.xml")
+
+        with open(tfile_name, "w+") as f:
             f.write("<tokens>\n")
 
             for token in tokens_need:
@@ -99,6 +100,4 @@ class JackTokenizer:
 
             f.write("</tokens>\n")
 
-        print(self.tokens_found)
-
-        return tokens_need
+        return self.tokens_found

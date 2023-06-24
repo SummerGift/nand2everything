@@ -7,13 +7,9 @@ import shutil
 
 class JackAnalyzer():
     @classmethod
-    def run(cls, input_file_name, output_file):
-        tokenizer = JackTokenizer(input_file_name)
+    def run(cls, input_file_name, output_file_name):
+        tokenizer = JackTokenizer(input_file_name, output_file_name)
         token_need = tokenizer.tokenize()
-
-        with open(output_file, "w") as f:
-            for token in token_need:
-                f.write(str(token))
 
     @classmethod
     def xml_output_file_for(cls, input_file):
