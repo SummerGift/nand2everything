@@ -68,7 +68,23 @@ class CompilationEngine:
         self._write_current_outer_tag(body="/classVarDec")
 
     def compile_subroutine(self):
-        return True
+        """
+        example: method/constructor/function void dispose() { ...
+        """
+        self._write_current_outer_tag(body="subroutineDec")
+        self._write_current_terminal_token()
+
+        while self._not_terminal_token_for('subroutine'):
+            self.tokenizer.advance()
+
+            if self._starting_token_for('parameter_list'):
+                self.compile_parameter_list()
+            elif self._starting_token_for('subroutine_body'):
+                self.compile_subroutine_body()
+            else:
+                self._write_current_terminal_token()
+
+        self._write_current_outer_tag(body="/subroutineDec")
 
     def compile_parameter_list(self):
         return True
