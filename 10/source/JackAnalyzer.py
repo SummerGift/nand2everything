@@ -16,7 +16,6 @@ class JackAnalyzer():
         compiler.compile_class()
         output_file.close()
 
-
     @classmethod
     def xml_output_file_for(cls, input_file):
         file_name = os.path.basename(input_file).split(".")[0]

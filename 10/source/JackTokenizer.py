@@ -12,7 +12,9 @@ class JackTokenizer:
         self.output_file_name = output_file_name
         self.tokens_found = []
         self.current_token = None
+        self.current_token_dict = None
         self.current_token_value = None
+        self.current_token_type = None
         self.next_token = None
         self.has_more_tokens = True
 
@@ -123,19 +125,18 @@ class JackTokenizer:
             return False
 
     def advance(self):
-        self.current_token = self.tokens_found.pop(0)
-        return self.current_token
+        self.current_token_dict = self.tokens_found.pop(0)
 
-    def current_token_type(self):
-        token_keys = self.current_token.keys()
+        token_keys = self.current_token_dict.keys()
         token_type = None
 
         for key in token_keys:
             token_type = key
 
-        self.current_token_value = self.current_token[token_type]
+        # get token type
+        self.current_token_type = self.tokentypes_conversions[token_type]
 
-        return self.tokentypes_conversions[token_type]
+        # get token value
+        self.current_token = self.current_token_dict[token_type]
 
-    def current_token_value(self):
-        return self.current_token_value
+        return self.current_token_dict
