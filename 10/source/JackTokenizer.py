@@ -15,6 +15,7 @@ class JackTokenizer:
         self.current_token_dict = None
         self.current_token_value = None
         self.current_token_type = None
+        self.next_token_dict = None
         self.next_token = None
         self.has_more_tokens = True
 
@@ -133,10 +134,19 @@ class JackTokenizer:
         for key in token_keys:
             token_type = key
 
-        # get token type
+        # get current token type and value
         self.current_token_type = self.tokentypes_conversions[token_type]
-
-        # get token value
         self.current_token = self.current_token_dict[token_type]
+
+        if len(self.tokens_found) == 0:
+            return None
+
+        # get next token type and value
+        next_token_dict = self.tokens_found[0]
+
+        print(next_token_dict)
+
+        for key in next_token_dict.values():
+            self.next_token = key
 
         return self.current_token_dict

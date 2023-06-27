@@ -87,7 +87,43 @@ class CompilationEngine:
         self._write_current_outer_tag(body="/subroutineDec")
 
     def compile_parameter_list(self):
-        return True
+        """
+        example: dispose(int a, int b)
+        """
+        # write starting (
+        self._write_current_terminal_token()
+        self._write_current_outer_tag(body="parameterList")
+
+        while self._not_terminal_token_for(position='next', keyword_token='parameter_list'):
+            self.tokenizer.advance()
+            self._write_current_terminal_token()
+
+        self._write_current_outer_tag(body="/parameterList")
+        # advance to closing )
+        self.tokenizer.advance()
+        self._write_current_terminal_token()
+
+    def compile_subroutine_body(self):
+        """
+        example: { do square.dispose() };
+        """
+        self._write_current_outer_tag(body="subroutineBody")
+        # write opening {
+        self._write_current_terminal_token()
+
+        while self._not_terminal_token_for('subroutine'):
+            self.tokenizer.advance()
+
+            if self._starting_token_for('var_dec'):
+                self.compile_var_dec()
+            # elif self._statement_token():
+            #     self.compile_statements()
+            else:
+                self._write_current_terminal_token()
+
+        # write closing }
+        self._write_current_terminal_token()
+        self._write_current_outer_tag(body="/subroutineBody")
 
     def compile_var_dec(self):
         return True
@@ -149,9 +185,15 @@ class CompilationEngine:
 
     def _terminal_keyword(self):
         return self.tokenizer.current_token in self.TERMINAL_KEYWORDS
-    
+
     def _not_terminal_token_for(self, keyword_token, position='current'):
         if position == 'current':
             return not self.tokenizer.current_token in self.TERMINATING_TOKENS[keyword_token]
         elif position == 'next':
             return not self.tokenizer.next_token in self.TERMINATING_TOKENS[keyword_token]
+
+    def _starting_token_for(self, keyword_token, position='current'):
+        if position == 'current':
+            return self.tokenizer.current_token in self.STARTING_TOKENS[keyword_token]
+        elif position == 'next':
+            return self.tokenizer.next_token in self.STARTING_TOKENS[keyword_token]
