@@ -77,7 +77,6 @@ Finally finished project 9, I wrote an applet introducing Chinese cities using j
 Project 10, the compiler front-end, was a big challenge for me. Understanding lexical parsing and syntactic parsing and implementing them by hand was not an easy task, but in any case, completion is more important than perfection.
 
 - [x] Initially implement the compiler front end manually
-- [ ] Use ANTLR to implement the front end of the compiler
 
 ### [Project 11 Compiler II: Code Generation](11)
 
