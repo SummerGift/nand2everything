@@ -116,8 +116,8 @@ class CompilationEngine:
 
             if self._starting_token_for('var_dec'):
                 self.compile_var_dec()
-            # elif self._statement_token():
-            #     self.compile_statements()
+            elif self._statement_token():
+                self.compile_statements()
             else:
                 self._write_current_terminal_token()
 
@@ -126,10 +126,40 @@ class CompilationEngine:
         self._write_current_outer_tag(body="/subroutineBody")
 
     def compile_var_dec(self):
-        return True
+        """
+        example: var int b;
+        """
+        self._write_current_outer_tag(body="varDec")
+        self._write_current_terminal_token()
+
+        while self._not_terminal_token_for('var_dec'):
+            self.tokenizer.advance()
+            self._write_current_terminal_token()
+
+        self._write_current_outer_tag(body="/varDec")
 
     def compile_statements(self):
-        return True
+        """
+        
+        call correct statement
+        """
+        self._write_current_outer_tag(body="statements")
+
+        while self._not_terminal_token_for('subroutine'):
+            if self.tokenizer.current_token == "if":
+                self.compile_if()
+            elif self.tokenizer.current_token == "do":
+                self.compile_do()
+            elif self.tokenizer.current_token == "let":
+                self.compile_let()
+            elif self.tokenizer.current_token == "while":
+                self.compile_while()
+            elif self.tokenizer.current_token == "return":
+                self.compile_return()
+
+            self.tokenizer.advance()
+
+        self._write_current_outer_tag(body="/statements")
 
     def compile_do(self):
         return True
@@ -197,3 +227,6 @@ class CompilationEngine:
             return self.tokenizer.current_token in self.STARTING_TOKENS[keyword_token]
         elif position == 'next':
             return self.tokenizer.next_token in self.STARTING_TOKENS[keyword_token]
+
+    def _statement_token(self):
+        return self.tokenizer.current_token in self.STATEMENT_TOKENS
