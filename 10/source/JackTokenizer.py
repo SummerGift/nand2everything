@@ -11,6 +11,7 @@ class JackTokenizer:
         self.input_file_name = input_file_name
         self.output_file_name = output_file_name
         self.tokens_found = []
+        self.tokens_save = []
         self.current_token = None
         self.current_token_dict = None
         self.current_token_value = None
@@ -113,6 +114,9 @@ class JackTokenizer:
 
             f.write("</tokens>\n")
 
+        for token in self.tokens_found:
+            self.tokens_save.append(token)
+
         return self.tokens_found
 
     def get_tokens_count(self):
@@ -144,9 +148,29 @@ class JackTokenizer:
         # get next token type and value
         next_token_dict = self.tokens_found[0]
 
-        print(next_token_dict)
-
         for key in next_token_dict.values():
             self.next_token = key
 
         return self.current_token_dict
+    
+    def part_of_subroutine_call(self):
+        if len(self.tokens_found) < 3:
+            return False
+        
+        index = len(self.tokens_save) - len(self.tokens_found) - 3
+
+        token_dict = self.tokens_save[index]
+
+        token_keys = token_dict.keys()
+
+        token_type = None
+
+        for key in token_keys:
+            token_type = key
+
+        token = token_dict[token_type]
+
+        if token == ".":
+            return True
+        else:
+            return False
