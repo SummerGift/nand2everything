@@ -18,6 +18,7 @@ class JackTokenizer:
         self.current_token_dict = None
         self.next_token_dict = None
         self.next_token = None
+        self.next_token_instance = None
         self.has_more_tokens = True
 
         # Define the token types and their regular expressions
@@ -147,6 +148,8 @@ class JackTokenizer:
         next_token_dict = self.tokens_found[0]
         for key in next_token_dict.values():
             self.next_token = key
+
+        self.next_token_instance = JackTokenType(self.next_token)
 
         return self.current_token_dict
     

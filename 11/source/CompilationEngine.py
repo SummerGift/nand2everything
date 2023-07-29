@@ -10,6 +10,11 @@ class CompilationEngine:
     CLASS_VAR_DEC_TOKENS = ["static", "field"]
     SUBROUTINE_TOKENS = ["function", "method", "constructor"]
     STATEMENT_TOKENS = ["do", "let", "while", "return", "if"]
+
+    SYMBOL_KINDS = {
+        'parameter_list': 'argument',
+        'var_dec': 'local'
+    }
     STARTING_TOKENS = {
         "var_dec": ["var"],
         "parameter_list": ["("],
@@ -88,8 +93,8 @@ class CompilationEngine:
         """
         example: method/constructor/function void dispose() { ...
         """
-        self._write_current_outer_tag(body="subroutineDec")
-        self._write_current_terminal_token()
+
+        self.subroutine_symbol_table.reset()
 
         while self._not_terminal_token_for("subroutine"):
             self.tokenizer.advance()
@@ -101,26 +106,26 @@ class CompilationEngine:
             else:
                 self._write_current_terminal_token()
 
-        self._write_current_outer_tag(body="/subroutineDec")
+        print(self.subroutine_symbol_table.dumps())
 
     def compile_parameter_list(self):
         """
         example: dispose(int a, int b)
         """
-        # write starting (
-        self._write_current_terminal_token()
-        self._write_current_outer_tag(body="parameterList")
 
-        while self._not_terminal_token_for(
-            position="next", keyword_token="parameter_list"
-        ):
+        while self._not_terminal_token_for(keyword_token="parameter_list"):
             self.tokenizer.advance()
-            self._write_current_terminal_token()
 
-        self._write_current_outer_tag(body="/parameterList")
-        # advance to closing )
-        self.tokenizer.advance()
-        self._write_current_terminal_token()
+            # get argument symbol table
+            if self.tokenizer.next_token_instance.is_identifier():
+                symbol_kind = self.SYMBOL_KINDS['parameter_list']
+                symbol_type = self.tokenizer.current_token_instance.text
+                symbol_name = self.tokenizer.next_token_instance.text
+                self.subroutine_symbol_table.define(
+                    kind = symbol_kind, 
+                    name = symbol_name,
+                    symbol_type=symbol_type,
+                )
 
     def compile_subroutine_body(self):
         """
@@ -139,7 +144,7 @@ class CompilationEngine:
                 self.compile_statements()
             else:
                 self._write_current_terminal_token()
-
+        
         # write closing }
         self._write_current_terminal_token()
         self._write_current_outer_tag(body="/subroutineBody")
@@ -148,14 +153,28 @@ class CompilationEngine:
         """
         example: var int b;
         """
-        self._write_current_outer_tag(body="varDec")
-        self._write_current_terminal_token()
+
+        # skip the var keyword
+        self.tokenizer.advance()
+        # get symbol type
+        symbol_type = self.tokenizer.current_token
+        # count the num of vars
+        vars_count = 0
 
         while self._not_terminal_token_for("var_dec"):
             self.tokenizer.advance()
-            self._write_current_terminal_token()
 
-        self._write_current_outer_tag(body="/varDec")
+            if self.tokenizer.identifier():
+                vars_count += 1
+                symbol_kind = self.SYMBOL_KINDS['var_dec']
+                symbol_name = self.tokenizer.identifier()
+                self.subroutine_symbol_table.define(
+                    name=symbol_name,
+                    kind=symbol_kind,
+                    symbol_type=symbol_type,
+                )
+
+        return vars_count
 
     def compile_statements(self):
         """
