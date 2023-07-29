@@ -28,9 +28,11 @@ class SymbolTable():
     def kind_of(self, name):
         """return the kind of the name identifer in the current scope(STATIC, FIDLE, ARG, VAR, NONE)"""
         return self.find_symbol_by_name(name).get("kind")
-    
+
     def type_of(self, name):
-        """return the type of the named identifier in  the current scope"""
+        """
+        return the type of the named identifier in the current scope, data type like int, string .etc
+        """
         return self.find_symbol_by_name(name).get("type")
     
     def index_of(self, name):
@@ -42,3 +44,7 @@ class SymbolTable():
         for symbol in self.symbols:
             if symbol["name"] == name:
                 return symbol
+            
+    def dumps(self):
+        """dumps all symbols"""
+        return self.symbols

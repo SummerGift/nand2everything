@@ -43,7 +43,7 @@ class JackTokenType:
         self.text = text
 
     def token_type(self):
-        if not self.test:
+        if not self.text:
             return None
         elif self.text[0] == "\"":
             return "STRING_CONST"

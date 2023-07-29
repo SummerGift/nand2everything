@@ -1,3 +1,5 @@
+from SymbolTable import SymbolTable
+
 class CompilationEngine:
     """
     compiles a jack source file from a jack tokenizer into xml form in output_file
@@ -36,6 +38,8 @@ class CompilationEngine:
     def __init__(self, tokenizer, output_file):
         self.tokenizer = tokenizer
         self.output_file = output_file
+        self.class_symbol_table = SymbolTable()
+        self.subroutine_symbol_table = SymbolTable()
 
     def compile_class(self):
         self.tokenizer.setup()
@@ -51,6 +55,8 @@ class CompilationEngine:
             elif self.tokenizer.current_token in self.SUBROUTINE_TOKENS:
                 self.compile_subroutine()
 
+        print(self.class_symbol_table.dumps())
+
         self._write_current_outer_tag(body="/class")
 
         return True
@@ -59,14 +65,24 @@ class CompilationEngine:
         """
         example: field int x;
         """
-        self._write_current_outer_tag(body="classVarDec")
-        self._write_current_terminal_token()
+
+        symbol_kind = self.tokenizer.keyword()
+
+        # getting symbol type after getting symbol kind, the kind is field and the type is int
+        self.tokenizer.advance()
+        symbol_type = self.tokenizer.keyword()
 
         while self._not_terminal_token_for("class_var_dec"):
             self.tokenizer.advance()
-            self._write_current_terminal_token()
 
-        self._write_current_outer_tag(body="/classVarDec")
+            if self.tokenizer.identifier():
+                symbol_name = self.tokenizer.identifier()
+                # get class level symbol table
+                self.class_symbol_table.define(
+                    name=symbol_name,
+                    symbol_type=symbol_type,
+                    kind=symbol_kind
+                )
 
     def compile_subroutine(self):
         """

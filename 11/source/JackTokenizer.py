@@ -1,5 +1,5 @@
 import re
-
+from JackTokenType import *
 
 class JackTokenizer:
     """
@@ -13,8 +13,9 @@ class JackTokenizer:
         self.tokens_found = []
         self.tokens_save = []
         self.current_token = None
-        self.current_token_dict = None
+        self.current_token_instance = None
         self.current_token_type = None
+        self.current_token_dict = None
         self.next_token_dict = None
         self.next_token = None
         self.has_more_tokens = True
@@ -137,6 +138,7 @@ class JackTokenizer:
         # get current token type and value
         self.current_token_type = token_type
         self.current_token = self.current_token_dict.get(token_type)
+        self.current_token_instance = JackTokenType(self.current_token)
 
         if len(self.tokens_found) == 0:
             return None
@@ -169,3 +171,11 @@ class JackTokenizer:
             return True
         else:
             return False
+
+    def keyword(self):
+        if self.current_token_instance.is_keyword():
+            return self.current_token_instance.text
+
+    def identifier(self):
+        if self.current_token_instance.is_identifier():
+            return self.current_token_instance.text
