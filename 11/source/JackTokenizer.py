@@ -182,3 +182,9 @@ class JackTokenizer:
     def identifier(self):
         if self.current_token_instance.is_identifier():
             return self.current_token_instance.text
+
+    def class_token_reached(self):
+        if not self.current_token_instance:
+            return False
+        else:
+            return self.current_token_instance.is_class()

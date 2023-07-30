@@ -1,4 +1,5 @@
 from SymbolTable import SymbolTable
+from VMWriter import VMWriter
 
 class CompilationEngine:
     """
@@ -45,24 +46,30 @@ class CompilationEngine:
         self.output_file = output_file
         self.class_symbol_table = SymbolTable()
         self.subroutine_symbol_table = SymbolTable()
+        self.vm_writer = VMWriter(output_file)
+        self.class_name = None
 
     def compile_class(self):
         self.tokenizer.setup()
-        self._write_current_outer_tag(body="class")
+
+        # skip useless token until class key word
+        while not self.tokenizer.class_token_reached():
+            self.tokenizer.advance()
+
+        # and then get the name of class
+        self.class_name = self.tokenizer.next_token_instance.text
 
         while self.tokenizer.hasMoreTokens():
             self.tokenizer.advance()
 
-            if self._terminal_token_type() or self._terminal_keyword():
-                self._write_current_terminal_token()
-            elif self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
+            if self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
+                # using class level variable to generate symbol table
                 self.compile_class_var_dec()
             elif self.tokenizer.current_token in self.SUBROUTINE_TOKENS:
+                # handle subroutine
                 self.compile_subroutine()
 
         print(self.class_symbol_table.dumps())
-
-        self._write_current_outer_tag(body="/class")
 
         return True
 
@@ -94,17 +101,21 @@ class CompilationEngine:
         example: method/constructor/function void dispose() { ...
         """
 
+        # starts a new subroutine symbol table
         self.subroutine_symbol_table.reset()
 
-        while self._not_terminal_token_for("subroutine"):
-            self.tokenizer.advance()
+        # gets the name of subroutine
+        self.tokenizer.advance()
+        self.tokenizer.advance()
+        subroutine_name = self.tokenizer.current_token
 
-            if self._starting_token_for("parameter_list"):
-                self.compile_parameter_list()
-            elif self._starting_token_for("subroutine_body"):
-                self.compile_subroutine_body()
-            else:
-                self._write_current_terminal_token()
+        # compile parameter list
+        self.tokenizer.advance()
+        self.compile_parameter_list()
+
+        # compile subroutine body
+        self.tokenizer.advance()
+        self.compile_subroutine_body(subroutine_name)
 
         print(self.subroutine_symbol_table.dumps())
 
@@ -127,27 +138,29 @@ class CompilationEngine:
                     symbol_type=symbol_type,
                 )
 
-    def compile_subroutine_body(self):
+    def compile_subroutine_body(self, subroutine_name):
         """
-        example: { do square.dispose() };
+        example: do Output.printInt(1 + (2 * 3));
         """
-        self._write_current_outer_tag(body="subroutineBody")
-        # write opening {
-        self._write_current_terminal_token()
 
-        while self._not_terminal_token_for("subroutine"):
+        self.tokenizer.advance()
+
+        # get the num of locals
+        num_locals = 0
+        while self._starting_token_for("var_dec"):
+            num_locals += self.compile_var_dec()
             self.tokenizer.advance()
 
-            if self._starting_token_for("var_dec"):
-                self.compile_var_dec()
-            elif self._statement_token():
-                self.compile_statements()
-            else:
-                self._write_current_terminal_token()
-        
-        # write closing }
-        self._write_current_terminal_token()
-        self._write_current_outer_tag(body="/subroutineBody")
+        print("num of locals: ", num_locals)
+
+        # write function command
+        self.vm_writer.write_function(
+            name="{0}.{1}".format(self.class_name, subroutine_name),
+            num_locals=num_locals,
+        )
+
+        while self._not_terminal_token_for("subroutine"):
+            self.compile_statements()
 
     def compile_var_dec(self):
         """
@@ -180,23 +193,23 @@ class CompilationEngine:
         """
         call correct statement
         """
-        self._write_current_outer_tag(body="statements")
+
+        statement_methods = {
+            "if": self.compile_if,
+            "do": self.compile_do,
+            "let": self.compile_let,
+            "while": self.compile_while,
+            "return": self.compile_return,
+        }
 
         while self._not_terminal_token_for("subroutine"):
-            if self.tokenizer.current_token == "if":
-                self.compile_if()
-            elif self.tokenizer.current_token == "do":
-                self.compile_do()
-            elif self.tokenizer.current_token == "let":
-                self.compile_let()
-            elif self.tokenizer.current_token == "while":
-                self.compile_while()
-            elif self.tokenizer.current_token == "return":
-                self.compile_return()
+
+            if self.tokenizer.current_token_instance.is_statement_token:
+                statement_type = self.tokenizer.current_token_instance.text
+                statement_methods[statement_type]()
 
             self.tokenizer.advance()
 
-        self._write_current_outer_tag(body="/statements")
 
     def compile_if(self):
         """
@@ -244,22 +257,51 @@ class CompilationEngine:
 
     def compile_do(self):
         """
-        example: do square.dispose();
+        example: do Output.printInt(1 + (2 * 3));
         """
-        self._write_current_outer_tag(body="doStatement")
-        self._write_current_terminal_token()
 
-        # experimental
-        def do_terminator_func():
-            return self._not_terminal_token_for('do')
-        def do_condition_func():
-            return self._starting_token_for('expression_list')
-        def do_do_something_func():
-            return self.compile_expression_list()
+        # after do keyword
+        self.tokenizer.advance()
 
-        self.compile_statement_body(do_terminator_func, do_condition_func, do_do_something_func)
+        # get caller name
+        caller_name = self.tokenizer.current_token_instance.text
 
-        self._write_current_outer_tag(body="/doStatement")
+        # look up the caller name in symbol table
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=caller_name)
+
+        # skip .
+        self.tokenizer.advance()
+
+        # get subroutine name
+        self.tokenizer.advance()
+        subroutine_name = self.tokenizer.current_token_instance.text
+
+        # if symbol is no none, means it's a user defined method
+        if symbol:
+            print("it's a user defined mathod\n")
+        else:
+            symbol_type = caller_name
+
+        subroutine_call_name = symbol_type + "." + subroutine_name
+
+        print(subroutine_call_name)
+
+        # start to handle expression list
+        self.tokenizer.advance()
+        num_args = self.compile_expression_list()
+
+        # if it's a method call
+        if symbol:
+            """object itself is also as a argument"""
+            num_args += 1
+
+        # write a function call
+        self.vm_writer.write_call(name=subroutine_call_name, num_args=num_args)
+
+        # pop the return value of previous function call that we don't need
+        self.vm_writer.write_pop(segment='temp', index='0')
+
+        exit(1)
 
     def compile_let(self):
         """
@@ -493,3 +535,9 @@ class CompilationEngine:
     
     def _another_expression_coming(self):
         return self.tokenizer.current_token == ","
+    
+    def _find_symbol_in_symbol_tables(self, symbol_name):
+        if self.subroutine_symbol_table.find_symbol_by_name(symbol_name):
+            return self.subroutine_symbol_table.find_symbol_by_name(symbol_name)
+        elif self.class_symbol_table.find_symbol_by_name(symbol_name):
+            return self.class_symbol_table.find_symbol_by_name(symbol_name)
