@@ -1,8 +1,17 @@
 # project 11 Code Generation
 
-Our target language, the VM language is postfix, so the compiler has to 
-translate from infix to postfix.
+![image-20230730110149465](./figures/image-20230730110149465.png)
 
-## Symbol Table
+## Variables
 
-Start building the compiler's symbol table module and using it to extend the syntax analyzer built before.
+![image-20230730110502989](./figures/image-20230730110502989.png)
+
+### Symbol Table
+
+![image-20230730110513759](./figures/image-20230730110513759.png)
+
+![image-20230730110615196](./figures/image-20230730110615196.png)
+
+![image-20230730110739204](./figures/image-20230730110739204.png)
+
+![image-20230730110853624](./figures/image-20230730110853624.png)
