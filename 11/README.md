@@ -15,3 +15,13 @@
 ![image-20230730110739204](./figures/image-20230730110739204.png)
 
 ![image-20230730110853624](./figures/image-20230730110853624.png)
+
+## Testing
+
+###  Seven
+
+这个测试用于检查编译器处理简单的程序，包括整数的数学计算，一个 do 语句，还有一个 return 语句。
+
+### Conversion to binary
+
+测试编译器处理 jack 语言的过程调用元素，比如表达式，函数和所有的语句类型（if、let、while 等）。
