@@ -199,9 +199,9 @@ class CompilationEngine:
         """
 
         statement_methods = {
-            "if": self.compile_if,
             "do": self.compile_do,
             "let": self.compile_let,
+            "if": self.compile_if,
             "while": self.compile_while,
             "return": self.compile_return,
         }
@@ -215,50 +215,6 @@ class CompilationEngine:
                 statement_methods[statement_type]()
 
             self.tokenizer.advance()
-
-    def compile_if(self):
-        """
-        example: if (True) { ... } else { ... }
-        """
-        self._write_current_outer_tag(body="ifStatement")
-        # write keyword if
-        self._write_current_terminal_token()
-
-        # advance to expression start
-        self.tokenizer.advance()
-
-        # compile expression in ()
-        self.compile_expression()
-
-        def not_terminate_func():
-            return self._not_terminal_token_for("if")
-
-        def condition_func():
-            return self._statement_token()
-
-        def do_something_special_func():
-            return self.compile_statements()
-
-        self.compile_statement_body(
-            not_terminate_func, condition_func, do_something_special_func
-        )
-
-        # compile else
-        if self.tokenizer.next_token == "else":
-            # write closing {
-            self._write_current_terminal_token()
-            # past closing {
-            self.tokenizer.advance()
-            # write else
-            self._write_current_terminal_token()
-            # same as above
-            self.compile_statement_body(
-                not_terminate_func, condition_func, do_something_special_func
-            )
-
-        # write terminal token
-        self._write_current_terminal_token()
-        self._write_current_outer_tag(body="/ifStatement")
 
     def compile_do(self):
         """
@@ -309,21 +265,68 @@ class CompilationEngine:
     def compile_let(self):
         """
         # 'let' varName ('[' expression ']')? '=' expression ';'
-        example: let direction = 0;
+        example: let value = Memory.peek(8000); 
+        # TODO handle array assignment
         """
-        self._write_current_outer_tag(body="letStatement")
-        # write let keyword
-        self._write_current_terminal_token()
+
+        # get the symbol from symbol table to store value
+        self.tokenizer.advance()
+        symbol_name = self.tokenizer.current_token_instant.text
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
+
+        while not self.tokenizer.current_token_instant.test is '=':
+            self.tokenizer.advance()
 
         while self._not_terminal_token_for('let'):
             self.tokenizer.advance()
+            self.compile_expression()
 
-            if self._starting_token_for('expression'):
-                self.compile_expression()
-            else:
-                self._write_current_terminal_token()
+        # pop the expression value to the symbol's location
+        self.vm_writer.write_pop(segment=symbol['kind'], index=symbol['index'])
 
-        self._write_current_outer_tag(body="/letStatement")
+    def compile_if(self):
+        """
+        example: if (True) { ... } else { ... }
+        """
+
+        # advance to expression start
+        self.tokenizer.advance()
+        self.tokenizer.advance()
+
+        # compile expression in ()
+        self.compile_expression()
+
+        # write if
+
+        def not_terminate_func():
+            return self._not_terminal_token_for("if")
+
+        def condition_func():
+            return self._statement_token()
+
+        def do_something_special_func():
+            return self.compile_statements()
+
+        self.compile_statement_body(
+            not_terminate_func, condition_func, do_something_special_func
+        )
+
+        # compile else
+        if self.tokenizer.next_token == "else":
+            # write closing {
+            self._write_current_terminal_token()
+            # past closing {
+            self.tokenizer.advance()
+            # write else
+            self._write_current_terminal_token()
+            # same as above
+            self.compile_statement_body(
+                not_terminate_func, condition_func, do_something_special_func
+            )
+
+        # write terminal token
+        self._write_current_terminal_token()
+        self._write_current_outer_tag(body="/ifStatement")
 
     def compile_while(self):
         """
