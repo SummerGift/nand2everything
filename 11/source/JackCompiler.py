@@ -6,13 +6,14 @@ import glob
 
 class JackCompiler():
     @classmethod
-    def run(cls, input_file_name, output_file_name):
-        tokenizer = JackTokenizer(input_file_name, output_file_name)
+    def run(cls, input_file_name, output_file):
 
-        output_file = open(output_file_name, 'w')
+        print("input_file_name:" + input_file_name)
+        print("output_file_name:" + output_file)
+
+        tokenizer = JackTokenizer(input_file_name, output_file)
         compiler = CompilationEngine(tokenizer, output_file)
         compiler.compile_class()
-        output_file.close()
 
     @classmethod
     def output_file_for(cls, input_file):
@@ -39,8 +40,6 @@ def main():
 
     for input_file_name in files:
         output_file_name = JackCompiler.output_file_for(input_file_name)
-
-        print("input_file_name:" + input_file_name)
         JackCompiler.run(input_file_name, output_file_name)
 
 

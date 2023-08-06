@@ -17,7 +17,7 @@ class VMWriter():
 
     def __init__(self, output_file):
         """prepares a new vm file for writing"""
-        self.output_file = output_file
+        self.output_file = open(output_file, 'w+')
 
     def write_push(self, segment, index):
         """
@@ -33,7 +33,7 @@ class VMWriter():
         segments: CONST, ARG, LOCAL, STATIC, THIS, THAT, POINTER, TEMP,
         and the index is int
         """
-        self.output_file.write("push {0} {1}\n".format(segment, index))
+        self.output_file.write("pop {0} {1}\n".format(segment, index))
     
     def write_arithmetic(self, command):
         """

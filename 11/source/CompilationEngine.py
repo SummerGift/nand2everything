@@ -1,5 +1,6 @@
 from SymbolTable import SymbolTable
 from VMWriter import VMWriter
+from Operator import Operator
 
 class CompilationEngine:
     """
@@ -41,12 +42,11 @@ class CompilationEngine:
     OPERATORS = ["+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="]
     UNARY_OPERATORS = ["-", "~"]
 
-    def __init__(self, tokenizer, output_file):
+    def __init__(self, tokenizer, output_file_name):
         self.tokenizer = tokenizer
-        self.output_file = output_file
         self.class_symbol_table = SymbolTable()
         self.subroutine_symbol_table = SymbolTable()
-        self.vm_writer = VMWriter(output_file)
+        self.vm_writer = VMWriter(output_file_name)
         self.class_name = None
 
     def compile_class(self):
@@ -55,6 +55,8 @@ class CompilationEngine:
         # skip useless token until class key word
         while not self.tokenizer.class_token_reached():
             self.tokenizer.advance()
+
+        print("compile_class")
 
         # and then get the name of class
         self.class_name = self.tokenizer.next_token_instance.text
@@ -113,6 +115,8 @@ class CompilationEngine:
         self.tokenizer.advance()
         self.compile_parameter_list()
 
+        print("compile_subroutine")
+
         # compile subroutine body
         self.tokenizer.advance()
         self.compile_subroutine_body(subroutine_name)
@@ -130,7 +134,7 @@ class CompilationEngine:
             # get argument symbol table
             if self.tokenizer.next_token_instance.is_identifier():
                 symbol_kind = self.SYMBOL_KINDS['parameter_list']
-                symbol_type = self.tokenizer.current_token_instance.text
+                symbol_type = self.tokenizer.current_token.text
                 symbol_name = self.tokenizer.next_token_instance.text
                 self.subroutine_symbol_table.define(
                     kind = symbol_kind, 
@@ -204,12 +208,13 @@ class CompilationEngine:
 
         while self._not_terminal_token_for("subroutine"):
 
-            if self.tokenizer.current_token_instance.is_statement_token:
+            if self.tokenizer.current_token_instance.is_statement_token():
                 statement_type = self.tokenizer.current_token_instance.text
+
+                print("statement_type: ", statement_type)
                 statement_methods[statement_type]()
 
             self.tokenizer.advance()
-
 
     def compile_if(self):
         """
@@ -278,7 +283,7 @@ class CompilationEngine:
 
         # if symbol is no none, means it's a user defined method
         if symbol:
-            print("it's a user defined mathod\n")
+            print("it's a user defined method\n")
         else:
             symbol_type = caller_name
 
@@ -300,8 +305,6 @@ class CompilationEngine:
 
         # pop the return value of previous function call that we don't need
         self.vm_writer.write_pop(segment='temp', index='0')
-
-        exit(1)
 
     def compile_let(self):
         """
@@ -353,116 +356,94 @@ class CompilationEngine:
         """
         example: return x; or return;
         """
-        self._write_current_outer_tag(body="returnStatement")
 
+        # if we need to return an experession
         if self._not_terminal_token_for(keyword_token='return', position='next'):
             self.compile_expression()
-        else: # write return and ; for void
-            self._write_current_terminal_token()
+        else: 
+            # return void, push a useless constant value
+            self.vm_writer.write_push(segment='constant', index='0')
             self.tokenizer.advance()
-            self._write_current_terminal_token()
 
-        self._write_current_outer_tag(body="/returnStatement")
+        self.vm_writer.write_return()
 
     def compile_expression(self):
         """
         # term (op term)*
-        many examples..i,e., x = 4
+        such as 1 + (2 * 3)
         """
-        self._write_current_terminal_token()
-        self._write_current_outer_tag(body="expression")
 
-        # check starting for unary negative
-        if self._starting_token_for('expression') and self._next_token_is_negative_unary_operator():
-            unary_negative_token = True
-        else:
-            unary_negative_token = False
-        self.tokenizer.advance()
+        ops = []
 
         while self._not_terminal_token_for('expression'):
-            if self._operator_token() and not unary_negative_token:
-                self._write_current_terminal_token()
+            if self._subroutine_call():
+                self.compile_subroutine_call()
                 self.tokenizer.advance()
-            else:
-                self.compile_term()
-
-        self._write_current_outer_tag(body="/expression")
-        self._write_current_terminal_token()
-
-    def compile_term(self):
-        """
-        # integerConstant | stringConstant | keywordConstant | varName |
-        # varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term
-        """
-        self._write_current_outer_tag(body="term")
-
-        while self._not_terminal_condition_for_term():
-            if self.tokenizer.part_of_subroutine_call():
-                self.compile_expression_list()
+            elif self.tokenizer.current_token_instance.text.isdigit():
+                self.vm_writer.write_push(
+                    segment="constant",
+                    index=self.tokenizer.current_token_instance.text)
+            elif self.tokenizer.current_token_instance.is_operator():
+                ops.insert(0, Operator(token=self.tokenizer.current_token_instance.text, category='bi'))
             elif self._starting_token_for('expression'):
-                self.compile_expression()
-            elif self.tokenizer.current_token in self.UNARY_OPERATORS:
-                self._write_current_terminal_token()
-
-                if self._starting_token_for(keyword_token='expression', position='next'):
-                    self.tokenizer.advance()
-                    self.compile_term()
-                    break
-                else:
-                    self.tokenizer.advance()
-                    # write inner term
-                    self._write_current_outer_tag(body="term")
-                    self._write_current_terminal_token()
-                    self._write_current_outer_tag(body="/term")
-            else:
-                self._write_current_terminal_token()
-
-            # i.e., i *
-            if self._next_token_is_operation_not_in_expression():
+                # skif the start token (
                 self.tokenizer.advance()
-                break
+                self.compile_expression()
+            elif self.tokenizer.null():
+                self.vm_writer.write_push(segment='constant', index=0)
 
             self.tokenizer.advance()
 
-        self._write_current_outer_tag(body="/term")
+        for operator in ops:
+            self.compile_op(operator)
 
-    def compile_expression_in_expression_list(self):
-        """
-        separeted out of compile_expression because of edge cases from normal expression
-        example: (x, y, x + 5)
-        """
-        self._write_current_outer_tag(body="expression")
+    def compile_op(self, op):
+        """example: +/-/* etc. """
 
-        # go till , or (
-        while self._not_terminal_token_for('expression'):
-            if self._operator_token():
-                self._write_current_terminal_token()
-                self.tokenizer.advance()
-            else:
-                self.compile_term()
-                # term takes care of advancing..
+        if op.unary():
+            self.vm_writer.write_unary(command=op.token)
+        elif op.multiplication():
+            self.vm_writer.write_call(name='Math.multiply', num_args=2)
+        elif op.division():
+            self.vm_writer.write_call(name='Math.divide', num_args=2)
+        else:
+            self.vm_writer.write_arithmetic(command=op.token)
 
-        self._write_current_outer_tag(body="/expression")
+    def compile_subroutine_call(self):
+        """ exp: Screen.setColor(true) """
+
+        subroutine_name = ""
+
+        while not self._starting_token_for('expression_list'):
+            subroutine_name += self.tokenizer.current_token.text
+            self.tokenizer.advance()
+
+        # get the number of args
+        num_args = self.compile_expression_list()
+
+        # call subroutine after pushing argument
+        self.vm_writer.write_call(name=subroutine_name, num_args=num_args)
 
     def compile_expression_list(self):
         # (expression (',' expression)* )?
-        # write (
-        self._write_current_terminal_token()
-        self._write_current_outer_tag(body="expressionList")
 
-        # skip initial (
+        args_num = 0
+
+        if self._empty_expression_list():
+            return args_num
+
+        # skip initial token (
         self.tokenizer.advance()
 
         while self._not_terminal_token_for('expression_list'):
-            self.compile_expression_in_expression_list()
+            args_num += 1
+            self.compile_expression()
+
             # current token could be , or ) to end expression list
             if self._another_expression_coming():
-                self._write_current_terminal_token()
                 self.tokenizer.advance()
 
-        self._write_current_outer_tag(body="/expressionList")
-        # write )
-        self._write_current_terminal_token()
+        return args_num
 
     def compile_statement_body(self, not_terminate_func, condition_func, do_something_special_func):
         while not_terminate_func():
@@ -473,8 +454,6 @@ class CompilationEngine:
             else:
                 self._write_current_terminal_token()
 
-    def _write_current_outer_tag(self, body):
-        self.output_file.write("<{}>\n".format(body))
 
     def _write_current_terminal_token(self):
         if self.tokenizer.current_token_type == "STRING_CONST":
@@ -488,8 +467,6 @@ class CompilationEngine:
             value = self.tokenizer.current_token.replace('"', "")
         else:
             value = self.tokenizer.current_token
-
-        self.output_file.write("<{}> {} </{}>\n".format(tag_name, value, tag_name))
 
     def _terminal_token_type(self):
         # print("token type:", self.tokenizer.current_token_type())
@@ -541,3 +518,20 @@ class CompilationEngine:
             return self.subroutine_symbol_table.find_symbol_by_name(symbol_name)
         elif self.class_symbol_table.find_symbol_by_name(symbol_name):
             return self.class_symbol_table.find_symbol_by_name(symbol_name)
+
+    def _empty_expression_list(self):
+        # if the current token is start of a expression list and the next token is end of a expression,
+        # means the expression list is empty
+        return self._start_of_expression_list() and self._next_ends_expression_list()
+
+    def _start_of_expression_list(self):
+        return self.tokenizer.current_token_instance.text in self.STARTING_TOKENS['expression_list']
+
+    def _next_ends_expression_list(self):
+        return self.tokenizer.next_token_instance.text in self.TERMINATING_TOKENS['expression_list']
+    
+    def _subroutine_call(self):
+        return self.tokenizer.identifier() and self.tokenizer.next_token.is_subroutine_call_delimiter()
+
+    def _part_of_expression_list(self):
+        return self.tokenizer.part_of_expression_list()

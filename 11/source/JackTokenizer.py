@@ -84,7 +84,7 @@ class JackTokenizer:
             tokens_need.append({token[0]: token[1]})
 
         # Set a tokenizer compare file name
-        tfile_name = self.output_file_name.replace(".xml", "T.xml")
+        tfile_name = self.output_file_name.replace(".vm", "T.xml")
         print("output token filename :", tfile_name)
 
         with open(tfile_name, "w+") as f:
@@ -188,3 +188,12 @@ class JackTokenizer:
             return False
         else:
             return self.current_token_instance.is_class()
+
+    def null(self):
+        if self.current_token_instance.is_null():
+            return self.current_token_instance.text
+        
+    def part_of_expression_list(self):
+        if len(self.tokens_found) < 3:
+            return False
+
