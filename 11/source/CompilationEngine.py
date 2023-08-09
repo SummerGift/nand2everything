@@ -1,6 +1,7 @@
 from SymbolTable import SymbolTable
 from VMWriter import VMWriter
 from Operator import Operator
+from LabelCounter import LabelCounter
 
 class CompilationEngine:
     """
@@ -42,12 +43,15 @@ class CompilationEngine:
     OPERATORS = ["+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="]
     UNARY_OPERATORS = ["-", "~"]
 
+    TOKENS_NEED_LABELS = ['if', 'while']
+
     def __init__(self, tokenizer, output_file_name):
         self.tokenizer = tokenizer
         self.class_symbol_table = SymbolTable()
         self.subroutine_symbol_table = SymbolTable()
         self.vm_writer = VMWriter(output_file_name)
         self.class_name = None
+        self.label_counter = LabelCounter(labels=self.TOKENS_NEED_LABELS)
 
     def compile_class(self):
         self.tokenizer.setup()
@@ -64,10 +68,10 @@ class CompilationEngine:
         while self.tokenizer.hasMoreTokens():
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
+            if self.tokenizer.current_token_instance.text in self.CLASS_VAR_DEC_TOKENS:
                 # using class level variable to generate symbol table
                 self.compile_class_var_dec()
-            elif self.tokenizer.current_token in self.SUBROUTINE_TOKENS:
+            elif self.tokenizer.current_token_instance.text in self.SUBROUTINE_TOKENS:
                 # handle subroutine
                 self.compile_subroutine()
 
@@ -109,7 +113,7 @@ class CompilationEngine:
         # gets the name of subroutine
         self.tokenizer.advance()
         self.tokenizer.advance()
-        subroutine_name = self.tokenizer.current_token
+        subroutine_name = self.tokenizer.current_token_instance.text
 
         # compile parameter list
         self.tokenizer.advance()
@@ -134,7 +138,7 @@ class CompilationEngine:
             # get argument symbol table
             if self.tokenizer.next_token_instance.is_identifier():
                 symbol_kind = self.SYMBOL_KINDS['parameter_list']
-                symbol_type = self.tokenizer.current_token.text
+                symbol_type = self.tokenizer.current_token_instance.text.text
                 symbol_name = self.tokenizer.next_token_instance.text
                 self.subroutine_symbol_table.define(
                     kind = symbol_kind, 
@@ -174,7 +178,7 @@ class CompilationEngine:
         # skip the var keyword
         self.tokenizer.advance()
         # get symbol type
-        symbol_type = self.tokenizer.current_token
+        symbol_type = self.tokenizer.current_token_instance.text
         # count the num of vars
         vars_count = 0
 
@@ -297,36 +301,29 @@ class CompilationEngine:
         self.compile_expression()
 
         # write if
+        self.vm_writer.write_ifgoto(label="IF_TRUE{}".format(self.label_counter.get('if')))
+        # write goto if false (else)
+        self.vm_writer.write_goto(label='IF_FALSE{}'.format(self.label_counter.get('if')))
+        # write if label
+        self.vm_writer.write_label(label='IF_TRUE{}'.format(self.label_counter.get('if')))
 
-        def not_terminate_func():
-            return self._not_terminal_token_for("if")
+        self.compile_conditional_statement()
 
-        def condition_func():
-            return self._statement_token()
 
-        def do_something_special_func():
-            return self.compile_statements()
-
-        self.compile_statement_body(
-            not_terminate_func, condition_func, do_something_special_func
-        )
-
-        # compile else
-        if self.tokenizer.next_token == "else":
-            # write closing {
-            self._write_current_terminal_token()
-            # past closing {
+    def compile_conditional_body(self):
+        while self._not_terminal_token_for('if'):
             self.tokenizer.advance()
-            # write else
-            self._write_current_terminal_token()
-            # same as above
-            self.compile_statement_body(
-                not_terminate_func, condition_func, do_something_special_func
-            )
 
-        # write terminal token
-        self._write_current_terminal_token()
-        self._write_current_outer_tag(body="/ifStatement")
+            if self._statement_token():
+                if self.tokenizer.current_token_instance.is_if():
+                    # add ifto labels count
+                    self.label_counter.increment('if')
+                    # compile nested if
+                    self.compile_statements()
+                    # subtract for exiting nesting
+                    self.label_counter.decrement('if')
+                else:
+                    self.compile_statements()
 
     def compile_while(self):
         """
@@ -418,7 +415,7 @@ class CompilationEngine:
         subroutine_name = ""
 
         while not self._starting_token_for('expression_list'):
-            subroutine_name += self.tokenizer.current_token.text
+            subroutine_name += self.tokenizer.current_token_instance.text
             self.tokenizer.advance()
 
         # get the number of args
@@ -457,31 +454,17 @@ class CompilationEngine:
             else:
                 self._write_current_terminal_token()
 
-
-    def _write_current_terminal_token(self):
-        if self.tokenizer.current_token_type == "STRING_CONST":
-            tag_name = "stringConstant"
-        elif self.tokenizer.current_token_type == "INT_CONST":
-            tag_name = "integerConstant"
-        else:
-            tag_name = self.tokenizer.current_token_type.lower()
-
-        if self.tokenizer.current_token_type == "STRING_CONST":
-            value = self.tokenizer.current_token.replace('"', "")
-        else:
-            value = self.tokenizer.current_token
-
     def _terminal_token_type(self):
         # print("token type:", self.tokenizer.current_token_type())
         return self.tokenizer.current_token_type in self.TERMINAL_TOKEN_TYPES
 
     def _terminal_keyword(self):
-        return self.tokenizer.current_token in self.TERMINAL_KEYWORDS
+        return self.tokenizer.current_token_instance.text in self.TERMINAL_KEYWORDS
 
     def _not_terminal_token_for(self, keyword_token, position="current"):
         if position == "current":
             return (
-                not self.tokenizer.current_token
+                not self.tokenizer.current_token_instance.text
                 in self.TERMINATING_TOKENS[keyword_token]
             )
         elif position == "next":
@@ -491,19 +474,19 @@ class CompilationEngine:
 
     def _starting_token_for(self, keyword_token, position="current"):
         if position == "current":
-            return self.tokenizer.current_token in self.STARTING_TOKENS[keyword_token]
+            return self.tokenizer.current_token_instance.text in self.STARTING_TOKENS[keyword_token]
         elif position == "next":
             return self.tokenizer.next_token in self.STARTING_TOKENS[keyword_token]
 
     def _statement_token(self):
-        return self.tokenizer.current_token in self.STATEMENT_TOKENS
+        return self.tokenizer.current_token_instance.text in self.STATEMENT_TOKENS
     
     def _next_token_is_negative_unary_operator(self):
         return self.tokenizer.next_token == "-"
 
     def _operator_token(self, position='current'):
         if position == 'current':
-            return self.tokenizer.current_token in self.OPERATORS
+            return self.tokenizer.current_token_instance.text in self.OPERATORS
         elif position == 'next':
             return self.tokenizer.next_token in self.OPERATORS
 
@@ -514,7 +497,7 @@ class CompilationEngine:
         return self._operator_token(position='next') and not self._starting_token_for('expression')
     
     def _another_expression_coming(self):
-        return self.tokenizer.current_token == ","
+        return self.tokenizer.current_token_instance.text == ","
     
     def _find_symbol_in_symbol_tables(self, symbol_name):
         if self.subroutine_symbol_table.find_symbol_by_name(symbol_name):
