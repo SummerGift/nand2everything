@@ -275,15 +275,16 @@ class CompilationEngine:
 
         # get the symbol from symbol table to store value
         self.tokenizer.advance()
-        symbol_name = self.tokenizer.current_token_instant.text
+        symbol_name = self.tokenizer.current_token_instance.text
         symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
 
-        while not self.tokenizer.current_token_instant.test is '=':
+        # advance to '='
+        while not self.tokenizer.current_token_instance.text == '=':
             self.tokenizer.advance()
 
-        while self._not_terminal_token_for('let'):
-            self.tokenizer.advance()
-            self.compile_expression()
+        # compile expression after '='
+        self.tokenizer.advance()
+        self.compile_expression()
 
         # pop the expression value to the symbol's location
         self.vm_writer.write_pop(segment=symbol['kind'], index=symbol['index'])
@@ -307,8 +308,34 @@ class CompilationEngine:
         # write if label
         self.vm_writer.write_label(label='IF_TRUE{}'.format(self.label_counter.get('if')))
 
-        self.compile_conditional_statement()
+        self.compile_conditional_body()
 
+        # handle else 
+        if self._starting_token_for(keyword_token='conditional', position='next'):
+            self.tokenizer.advance()
+
+            # goto if end if this path isn't hit
+            self.vm_writer.write_goto(
+                label='IF_END{}'.format(self.label_counter.get('if'))
+            )
+
+            # if false, hit the else path
+            self.vm_writer.write_label(
+                label='IF_FALSE{}'.format(self.label_counter.get('if'))
+            )
+
+            # compile else body
+            self.compile_conditional_body()
+
+            # define IF_END
+            self.vm_writer.write_label(
+                label='IF_END{}'.format(self.label_counter.get('if'))
+            )
+        else:
+            # no else present, go to the false label directly
+            self.vm_writer.write_label(
+                label='IF_FALSE{}'.format(self.label_counter.get('if'))
+            )
 
     def compile_conditional_body(self):
         while self._not_terminal_token_for('if'):
