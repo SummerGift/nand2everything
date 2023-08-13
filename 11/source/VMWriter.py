@@ -47,9 +47,7 @@ class VMWriter():
         """
         writes avm unary command, such as NEG, NOT
         """
-        self.output_file.write(
-            self.output_file.write("{}\n".format(self.UNARY_OPERATORS[command]))
-        )
+        self.output_file.write("{}\n".format(self.UNARY_OPERATORS[command]))
 
     def write_label(self, label):
         """writes a vm label command, label is a string"""
@@ -61,7 +59,7 @@ class VMWriter():
 
     def write_ifgoto(self, label):
         """writes a vm ifgoto command, label is a string"""
-        self.output_file.write("goto {}\n".format(label))
+        self.output_file.write('if-goto {}\n'.format(label))
 
     def write_call(self, name, num_args):
         """

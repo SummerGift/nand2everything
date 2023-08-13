@@ -20,6 +20,7 @@ class JackTokenizer:
         self.next_token = None
         self.next_token_instance = None
         self.has_more_tokens = True
+        self.last_token_instance = None
 
         # Define the token types and their regular expressions
         self.token_define = [
@@ -129,8 +130,12 @@ class JackTokenizer:
         else:
             self.has_more_tokens = False
             return False
-
+        
     def advance(self):
+        # save the last token
+        self.last_token_instance = self.current_token_instance
+
+        # save the current token
         self.current_token_dict = self.tokens_found.pop(0)
 
         type_list = [key for key in self.current_token_dict]
@@ -142,6 +147,7 @@ class JackTokenizer:
         self.current_token_instance = JackTokenType(self.current_token)
 
         if len(self.tokens_found) == 0:
+            self.next_token_instance = None
             return None
 
         # check next token
@@ -193,7 +199,12 @@ class JackTokenizer:
         if self.current_token_instance.is_null():
             return self.current_token_instance.text
         
-    def part_of_expression_list(self):
+    def is_of_expression_list(self):
         if len(self.tokens_found) < 3:
             return False
+        
+    def is_likely_unary_operator(self):
+        return self.last_token_instance.is_expression_list_delimiter() or self.last_token_instance.is_expression_list_starter()
+        
+
 
