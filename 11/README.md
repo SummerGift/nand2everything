@@ -25,3 +25,10 @@
 ### Conversion to binary
 
 测试编译器处理 jack 语言的过程调用元素，比如表达式，函数和所有的语句类型（if、let、while 等）。
+
+### Square Dance
+
+测试编译器处理面向对象的构建元素，例如 constructors, methods, fields and expressions that include method calls.
+
+
+
