@@ -92,9 +92,6 @@ class JackTokenizer:
             f.write("<tokens>\n")
 
             for token in tokens_need:
-                if "symbol" in token:
-                    if token["symbol"] in self.symbol_conversions:
-                        token["symbol"] = self.symbol_conversions[token["symbol"]]
 
                 if "stringConstant" in token:
                     token["stringConstant"] = token["stringConstant"].replace('"', "")

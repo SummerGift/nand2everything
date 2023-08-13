@@ -2,6 +2,7 @@ from SymbolTable import SymbolTable
 from VMWriter import VMWriter
 from Operator import Operator
 from LabelCounter import LabelCounter
+import inspect
 
 class CompilationEngine:
     """
@@ -110,11 +111,12 @@ class CompilationEngine:
         self.tokenizer.advance()
         subroutine_name = self.tokenizer.current_token_instance.text
 
+        print(f"Current function: {inspect.currentframe().f_code.co_name}, Line number: {inspect.currentframe().f_lineno}")
+        print(f"Subroutine name: {subroutine_name}")
+
         # compile parameter list
         self.tokenizer.advance()
         self.compile_parameter_list()
-
-        print("compile_subroutine")
 
         # compile subroutine body
         self.tokenizer.advance()
@@ -236,8 +238,6 @@ class CompilationEngine:
         self.tokenizer.advance()
         subroutine_name = self.tokenizer.current_token_instance.text
 
-        print("244:", symbol)
-
         # if symbol is no none, means it's a user defined method
         if symbol:
             # push value onto local segment
@@ -284,17 +284,10 @@ class CompilationEngine:
         while self._not_terminal_token_for('let'):
             # compile expression after '='
             self.tokenizer.advance()
-            print("current287 token:", self.tokenizer.current_token_instance.text)
             self.compile_expression()
-            print("current289 token:", self.tokenizer.current_token_instance.text)
-
-        print("let state need end here :288")
-
-        print("current token:", self.tokenizer.current_token_instance.text)
 
         # pop the expression value to the symbol's location
         self.vm_writer.write_pop(segment=symbol['kind'], index=symbol['index'])
-        print("292")
 
     def compile_if(self):
         """
@@ -425,6 +418,8 @@ class CompilationEngine:
 
         while self._not_terminal_token_for('expression'):
 
+            print(f"Current token text: {self.tokenizer.current_token_instance.text}")
+
             # handle subroutine call
             if self._subroutine_call():
                 self.compile_subroutine_call()
@@ -435,29 +430,35 @@ class CompilationEngine:
                     segment="constant",
                     index=self.tokenizer.current_token_instance.text)
 
+            # push symbol in the symbol table
+            elif self.tokenizer.current_token_instance.is_identifier():
+                self.push_identifier()
             # need to distinguish the difference between sub and neg
             elif self.tokenizer.current_token_instance.is_operator() and not self.tokenizer.is_likely_unary_operator():
+                print(f"Current function: {inspect.currentframe().f_code.co_name}, Line number: {inspect.currentframe().f_lineno}")
                 ops.insert(0, Operator(token=self.tokenizer.current_token_instance.text, category='bi'))
             elif self.tokenizer.current_token_instance.is_unary_operator():
+                print(f"Current function: {inspect.currentframe().f_code.co_name}, Line number: {inspect.currentframe().f_lineno}")
                 ops.insert(0, Operator(token=self.tokenizer.current_token_instance.text, category='unary'))
 
             elif self._starting_token_for('expression'):
                 # skif the start token (
                 self.tokenizer.advance()
                 self.compile_expression()
+
             elif self.tokenizer.null():
                 self.vm_writer.write_push(segment='constant', index=0)
 
+            # handle boolean type
+            elif self.tokenizer.current_token_instance.is_boolean():
+                self.vm_writer.write_push(segment='constant', index='0')
+                if self.tokenizer.current_token_instance.text == 'true':
+                    self.vm_writer.write_unary(command='~')
+
             self.tokenizer.advance()
-
-            print("current453 token:", self.tokenizer.current_token_instance.text)
-
-        print("after expression 457")
 
         for operator in ops:
             self.compile_op(operator)
-
-        print("462==================?")
 
     def compile_op(self, op):
         """example: +/-/* etc. """
@@ -491,8 +492,13 @@ class CompilationEngine:
 
         args_num = 0
 
+        print(f"Current function: {inspect.currentframe().f_code.co_name}, Line number: {inspect.currentframe().f_lineno}")
+
         if self._empty_expression_list():
             return args_num
+        
+        print(f"Current function: {inspect.currentframe().f_code.co_name}, Line number: {inspect.currentframe().f_lineno}")
+        
 
         # skip initial token (
         self.tokenizer.advance()
@@ -504,6 +510,8 @@ class CompilationEngine:
             # current token could be , or ) to end expression list
             if self._another_expression_coming():
                 self.tokenizer.advance()
+
+        print(f"Args num: {args_num}, Function: {inspect.currentframe().f_code.co_name}, Line number: {inspect.currentframe().f_lineno}")
 
         return args_num
 
@@ -578,3 +586,16 @@ class CompilationEngine:
 
     def _part_of_expression_list(self):
         return self.tokenizer.part_of_expression_list()
+    
+    def push_identifier(self):
+        """
+        Handles identifiers in the code
+        """
+        symbol_name = self.tokenizer.identifier()
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
+
+        if symbol:
+            self.vm_writer.write_push(segment=symbol['kind'], index=symbol['index'])
+        else:
+            raise Exception(f"Identifier {symbol_name} not found in symbol table.")
+    
