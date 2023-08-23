@@ -130,8 +130,11 @@ class CompilationEngine:
         self.tokenizer.advance()
         arg_num = self.compile_parameter_list()
 
-        # compile subroutine body
+        # skip to compile subroutine body
         self.tokenizer.advance()
+        self.tokenizer.advance()
+
+        print(f"start to compile subroutine variable")
 
         # handle varible and build a subroutine level symbol table
         num_locals = 0
@@ -139,9 +142,10 @@ class CompilationEngine:
             num_locals += self.compile_subroutine_var_dec()
             self.tokenizer.advance()
 
-        print("Subroutine level symbol table is:")
-        print(self.subroutine_symbol_table.dumps())
-        
+        print(f"compile subroutine variable done, the local vars number is {num_locals}")
+
+        print("Subroutine level symbol table is:", self.subroutine_symbol_table.dumps())
+
         # write function command
         self.vm_writer.write_function(
             name="{0}.{1}".format(self.class_name, subroutine_name),
@@ -215,10 +219,6 @@ class CompilationEngine:
         # count the num of vars
         vars_count = 0
 
-        # if symbol_type is None:
-        #     if self.tokenizer.identifier():
-        #         symbol_type = self.tokenizer.identifier()
-
         while self._not_terminal_token_for("var_dec"):
             self.tokenizer.advance()
 
@@ -231,8 +231,6 @@ class CompilationEngine:
                     kind=symbol_kind,
                     symbol_type=symbol_type,
                 )
-
-        print(self.subroutine_symbol_table.dumps())
 
         return vars_count
 
@@ -291,6 +289,8 @@ class CompilationEngine:
         # TODO handle array assignment
         """
 
+        print("Start to compile let statement")
+
         # get the symbol from symbol table to store value
         self.tokenizer.advance()
         symbol_name = self.tokenizer.current_token_instance.text
@@ -305,8 +305,13 @@ class CompilationEngine:
             self.tokenizer.advance()
             self.compile_expression()
 
+        print("the symbol's kind is", symbol['kind'])
+
         if symbol['kind'] == "field":
             segment = "this"
+        # elif symbol["kind"] == "local":
+        #     segment = ""
+
 
         # pop the expression value to the symbol's location
         self.vm_writer.write_pop(segment=segment, index=symbol['index'])
