@@ -154,7 +154,7 @@ class CompilationEngine:
 
         if subroutine_type == "constructor":
             arg_num = self.class_symbol_table.var_count("field")
-            self.vm_writer.write_push("CONST", arg_num)
+            self.vm_writer.write_push("constant", arg_num)
             self.vm_writer.write_call("Memory.alloc", 1)
             self.vm_writer.write_pop("pointer", 0)
 
@@ -309,9 +309,8 @@ class CompilationEngine:
 
         if symbol['kind'] == "field":
             segment = "this"
-        # elif symbol["kind"] == "local":
-        #     segment = ""
-
+        else:
+            segment = symbol["kind"]
 
         # pop the expression value to the symbol's location
         self.vm_writer.write_pop(segment=segment, index=symbol['index'])
@@ -454,6 +453,10 @@ class CompilationEngine:
                 self.vm_writer.write_push(
                     segment="constant",
                     index=self.tokenizer.current_token_instance.text)
+            
+            # return the pointer of the object just created
+            elif self.tokenizer.current_token_instance.text == "this":
+                self.vm_writer.write_push(segment='pointer', index='0')
 
             # push symbol in the symbol table
             elif self.tokenizer.current_token_instance.is_identifier():
