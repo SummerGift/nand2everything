@@ -20,6 +20,8 @@
 
 ![image-20230820195211147](./figures/image-20230820195211147.png)
 
+`pointer 0` 和 `pointer 1` 只是锚点，用于设置某一个对象或者数组的基地址，设置完基地址后，可以用 this 和 that 指针来访问对象或者数组中的数据。可以用变量来存储某个对象或者数组的基地址，在需要操作该对象和数组的时候，将变量的值 pop 到 pointer 0 或者 pointer 1。
+
 ![image-20230820195300386](./figures/image-20230820195300386.png)
 
 ![image-20230820195328233](./figures/image-20230820195328233.png)
@@ -28,19 +30,27 @@
 
 ### Handling Objects Construction
 
+当处理对象构建的时候，需要考虑两方面，分别是构建函数的调用方 caller 和被调用的构建函数（callee）如何处理。
+
 ![image-20230820195621211](./figures/image-20230820195621211.png)
 
-
+从 caller 的角度来看，需要将 callee 所需要的数据 push 入栈，callee 会申请好 obj 所需的内存，然后将其基地址返回给 caller。
 
 ![image-20230820195723143](./figures/image-20230820195723143.png)
 
+在编译阶段，构建符号表的时候，已经将局部变量映射到栈上，在运行阶段，constructor 的代码会在堆上创建对象。
+
 ![image-20230820195737999](./figures/image-20230820195737999.png)
+
+在 constructor 代码开始的地方，需要开始创建 subroutine 的符号表，接下来编译器需要统计这个对象需要占用多大内存，然后调用 `memory.alloc` 来分配，最后将内存的基地址 `pop pointer 0`（这个 pointer 0 只是锚点，用于锚定堆上的一块内存，后续可以通过 this 指针来访问），便于接下来使用 this 指针来访问对象的私有变量。
 
 ![image-20230820195814633](./figures/image-20230820195814633.png)
 
+在 constructor 的最后，通过 `push pointer 0` 将对象的首地址返回，便于 caller 将其存放到其他变量中。
+
 ![image-20230820195839376](./figures/image-20230820195839376.png)
 
-计算对象存放所需要的内存空间后（包括私有数据），使用 `Memory.alloc` 申请用于存放内核对象的地址空间），在 constructor 的最后，将对象的基地址返回。
+
 
 ## Testing
 
@@ -56,5 +66,7 @@
 
 测试编译器处理面向对象的构建元素，例如 constructors, methods, fields and expressions that include method calls.
 
+```
+print(f"Args num: {args_num}, Function: {inspect.currentframe().f_code.co_name}, Line number: {inspect.currentframe().f_lineno}")
 
-
+```
