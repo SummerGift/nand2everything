@@ -245,6 +245,7 @@ class CompilationEngine:
         """
         example: do Output.printInt(1 + (2 * 3));
         """
+        is_current_class_method = False
 
         print("Start to compile do statement")
 
@@ -259,24 +260,41 @@ class CompilationEngine:
         # maybe it's a field type  
         symbol = self._find_symbol_in_symbol_tables(symbol_name=caller_name)
 
-        # skip .
-        self.tokenizer.advance()
-
-        # get subroutine name
-        self.tokenizer.advance()
-        subroutine_name = self.tokenizer.current_token_instance.text
-
         if symbol:
+            print("symbol can be found in symbol table")
+
+            # skip .
+            self.tokenizer.advance()
+
+            # get subroutine name
+            self.tokenizer.advance()
+            subroutine_name = self.tokenizer.current_token_instance.text
+
             # since it's a class level symbol, field type, we should access it using this pointer
             segment = 'this'
             index = symbol['index']
             symbol_type = symbol['type']
             self.vm_writer.write_push(segment=segment, index=index)
-        else:
-            # if symbol is None, means it's a user defined method not a variable
-            symbol_type = caller_name
 
-        subroutine_call_name = symbol_type + "." + subroutine_name
+            subroutine_call_name = symbol_type + "." + subroutine_name
+        else:
+            if self.tokenizer.next_token_instance.text == '.':
+                print("Next token is '.'")
+                # skip .
+                self.tokenizer.advance()
+
+                # get subroutine name
+                self.tokenizer.advance()
+                subroutine_name = self.tokenizer.current_token_instance.text
+
+                symbol_type = caller_name
+                subroutine_call_name = symbol_type + "." + subroutine_name
+            else:
+                print("Next token is not '.'")
+                # if symbol is None, means it's a user defined method not a variable
+                subroutine_call_name = self.class_name + '.' + caller_name
+                self.vm_writer.write_push(segment='pointer', index=0)
+                is_current_class_method = True
 
         # start to handle expression list
         self.tokenizer.advance()
@@ -285,6 +303,9 @@ class CompilationEngine:
         # if it's a method call
         if symbol:
             """object itself is also as a argument"""
+            num_args += 1
+
+        if is_current_class_method:
             num_args += 1
 
         # write a function call
