@@ -273,7 +273,11 @@ class CompilationEngine:
             subroutine_name = self.tokenizer.current_token_instance.text
 
             # since it's a class level symbol, field type, we should access it using this pointer
-            segment = 'this'
+            if symbol['kind'] == "field":
+                segment = 'this'
+            else:
+                segment = symbol["kind"]
+
             index = symbol['index']
             symbol_type = symbol['type']
             self.vm_writer.write_push(segment=segment, index=index)
@@ -628,7 +632,6 @@ class CompilationEngine:
             elif keyword_token == "while":
                 return (not self.tokenizer.current_token_instance.text in ['}'])
             elif keyword_token == "let":
-                print("the check value is ", (not self.tokenizer.current_token_instance.text == ';'))
                 return (not self.tokenizer.current_token_instance.text == ';')
             else:
                 return (not self.tokenizer.current_token_instance.text in self.TERMINATING_TOKENS[keyword_token]) 
