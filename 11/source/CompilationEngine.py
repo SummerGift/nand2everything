@@ -55,6 +55,7 @@ class CompilationEngine:
         self.class_name = None
         self.label_counter = LabelCounter(labels=self.TOKENS_NEED_LABELS)
         self.while_statement_count = 0
+        self.if_statement_count = 0
 
     def compile_class(self):
         self.tokenizer.setup()
@@ -167,6 +168,8 @@ class CompilationEngine:
 
         # need push the base of object and return
         self.label_counter.reset_counts()
+        self.while_statement_count = 0
+        self.if_statement_count = 0
 
     def compile_parameter_list(self):
         """
@@ -366,6 +369,9 @@ class CompilationEngine:
         example: if (True) { ... } else { ... }
         """
 
+        temp_if_count = self.if_statement_count
+        self.if_statement_count += 1
+
         print("start to compile if statement")
 
         # advance to expression start
@@ -376,31 +382,32 @@ class CompilationEngine:
         self.compile_expression()
 
         # write if
-        self.vm_writer.write_ifgoto(label="IF_TRUE{}".format(self.label_counter.get('if')))
+        self.vm_writer.write_ifgoto(label="IF_TRUE{}".format(temp_if_count))
         # write goto if false (else)
-        self.vm_writer.write_goto(label='IF_FALSE{}'.format(self.label_counter.get('if')))
+        self.vm_writer.write_goto(label='IF_FALSE{}'.format(temp_if_count))
         # write if label
-        self.vm_writer.write_label(label='IF_TRUE{}'.format(self.label_counter.get('if')))
+        self.vm_writer.write_label(label='IF_TRUE{}'.format(temp_if_count))
 
         self.compile_conditional_body()
 
         print("Finished compiling conditional body")
         print("Current token text: ", self.tokenizer.current_token_instance.text)
+        print("Next token: ", self.tokenizer.next_token_instance.text)
 
         # handle else 
-        if self._starting_token_for(keyword_token='conditional', position='next'):
+        if self.tokenizer.next_token_instance.text == 'else':
             self.tokenizer.advance()
 
             print("Begin to handle else branch")
             
             # goto if end if this path isn't hit
             self.vm_writer.write_goto(
-                label='IF_FALSE{}'.format(self.label_counter.get('if'))
+                label='IF_END{}'.format(temp_if_count)
             )
 
             # if false, hit the else path
             self.vm_writer.write_label(
-                label='IF_FALSE{}'.format(self.label_counter.get('if'))
+                label='IF_FALSE{}'.format(temp_if_count)
             )
 
             # compile else body
@@ -408,15 +415,13 @@ class CompilationEngine:
 
             # define IF_END
             self.vm_writer.write_label(
-                label='IF_END{}'.format(self.label_counter.get('if'))
+                label='IF_END{}'.format(temp_if_count)
             )
         else:
             # no else present, go to the false label directly
             self.vm_writer.write_label(
-                label='IF_FALSE{}'.format(self.label_counter.get('if'))
+                label='IF_FALSE{}'.format(temp_if_count)
             )
-
-        self.label_counter.increment('if')
 
     def compile_conditional_body(self):
         while self._not_terminal_token_for('if'):
@@ -642,7 +647,7 @@ class CompilationEngine:
         if position == "current":
             return self.tokenizer.current_token_instance.text in self.STARTING_TOKENS[keyword_token]
         elif position == "next":
-            return self.tokenizer.next_token_instance in self.STARTING_TOKENS[keyword_token]
+            return self.tokenizer.next_token_instance.text in self.STARTING_TOKENS[keyword_token]
 
     def _statement_token(self):
         return self.tokenizer.current_token_instance.text in self.STATEMENT_TOKENS
