@@ -325,6 +325,8 @@ class CompilationEngine:
         example: if (True) { ... } else { ... }
         """
 
+        print("start to compile if statement")
+
         # advance to expression start
         self.tokenizer.advance()
         self.tokenizer.advance()
@@ -341,13 +343,18 @@ class CompilationEngine:
 
         self.compile_conditional_body()
 
+        print("Finished compiling conditional body")
+        print("Current token text: ", self.tokenizer.current_token_instance.text)
+
         # handle else 
         if self._starting_token_for(keyword_token='conditional', position='next'):
             self.tokenizer.advance()
 
+            print("Begin to handle else branch")
+            
             # goto if end if this path isn't hit
             self.vm_writer.write_goto(
-                label='IF_END{}'.format(self.label_counter.get('if'))
+                label='IF_FALSE{}'.format(self.label_counter.get('if'))
             )
 
             # if false, hit the else path
@@ -367,6 +374,8 @@ class CompilationEngine:
             self.vm_writer.write_label(
                 label='IF_FALSE{}'.format(self.label_counter.get('if'))
             )
+
+        self.label_counter.increment('if')
 
     def compile_conditional_body(self):
         while self._not_terminal_token_for('if'):
@@ -567,19 +576,19 @@ class CompilationEngine:
         if position == "current":
             return self.tokenizer.current_token_instance.text in self.STARTING_TOKENS[keyword_token]
         elif position == "next":
-            return self.tokenizer.next_token in self.STARTING_TOKENS[keyword_token]
+            return self.tokenizer.next_token_instance in self.STARTING_TOKENS[keyword_token]
 
     def _statement_token(self):
         return self.tokenizer.current_token_instance.text in self.STATEMENT_TOKENS
     
     def _next_token_is_negative_unary_operator(self):
-        return self.tokenizer.next_token == "-"
+        return self.tokenizer.next_token_instance.text == "-"
 
     def _operator_token(self, position='current'):
         if position == 'current':
             return self.tokenizer.current_token_instance.text in self.OPERATORS
         elif position == 'next':
-            return self.tokenizer.next_token in self.OPERATORS
+            return self.tokenizer.next_token_instance.text in self.OPERATORS
 
     def _not_terminal_condition_for_term(self):
         return self._not_terminal_token_for('expression')
