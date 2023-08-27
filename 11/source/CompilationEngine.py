@@ -124,7 +124,7 @@ class CompilationEngine:
         self.tokenizer.advance()
         subroutine_name = self.tokenizer.current_token_instance.text
 
-        print(f"Start to compile {subroutine_name}, subroutine type is {subroutine_type}")
+        print(f"\nStart to compile {subroutine_name}, subroutine type is {subroutine_type}")
 
         # compile parameter list
         self.tokenizer.advance()
@@ -203,12 +203,16 @@ class CompilationEngine:
             "return": self.compile_return,
         }
 
+        print("Start to compile statements")
+
         while self._not_terminal_token_for("subroutine"):
             if self.tokenizer.current_token_instance.is_statement_token():
                 statement_type = self.tokenizer.current_token_instance.text
                 statement_methods[statement_type]()
 
             self.tokenizer.advance()
+
+        print("finished compiling statements")
 
     def compile_subroutine_var_dec(self):
         """
@@ -241,6 +245,8 @@ class CompilationEngine:
         """
         example: do Output.printInt(1 + (2 * 3));
         """
+
+        print("Start to compile do statement")
 
         # after do keyword
         self.tokenizer.advance()
@@ -305,17 +311,25 @@ class CompilationEngine:
         while not self.tokenizer.current_token_instance.text == '=':
             self.tokenizer.advance()
 
+        print("Start to compile let expression")
+
+        count = 0
         while self._not_terminal_token_for('let'):
-            # compile expression after '='
             self.tokenizer.advance()
             self.compile_expression()
-
+            print("Execution count: ", count)
+            count += 1
+            print("Current token: ", self.tokenizer.current_token_instance.text)
+            print("Next token: ", self.tokenizer.next_token_instance.text)
+            
         print("the symbol's kind is", symbol['kind'])
 
         if symbol['kind'] == "field":
             segment = "this"
         else:
             segment = symbol["kind"]
+
+        print("After compiling expression, start to pop value to variable")
 
         # pop the expression value to the symbol's location
         self.vm_writer.write_pop(segment=segment, index=symbol['index'])
@@ -398,6 +412,9 @@ class CompilationEngine:
         # 'while' '(' expression ')' '{' statements '}'
         """
 
+        print("Start to compile while statement")
+        print("Current token: ", self.tokenizer.current_token_instance.text)
+        
         # write while label
         self.vm_writer.write_label(
             label='WHILE_EXP{}'.format(self.label_counter.get('while'))
@@ -413,12 +430,23 @@ class CompilationEngine:
         # test the expression, if false, go to the WHILE_END label
         self.vm_writer.write_unary(command='~')
         self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(self.label_counter.get('while')))
-        
+
+        # start to compile while statement body
+
+        print("Start to compile while statement body")
+
         while self._not_terminal_token_for('while'):
+
+            print("Current token first: ", self.tokenizer.current_token_instance.text)
+            
             self.tokenizer.advance()
+
+            print("Current token second: ", self.tokenizer.current_token_instance.text)
 
             if self._statement_token():
                 self.compile_statements()
+
+        print("Compile while statement done, ready to write WHILE_END label")
 
         # write goto WHILE_EXP
         self.vm_writer.write_goto(
@@ -433,6 +461,8 @@ class CompilationEngine:
         # increment the label for while
         self.label_counter.increment('while')
 
+        print("Finished compiling while statement")
+        
     def compile_return(self):
         """
         example: return x; or return;
@@ -453,6 +483,8 @@ class CompilationEngine:
         # term (op term)*
         such as 1 + (2 * 3)
         """
+
+        print("Start to compile expression")
 
         ops = []
 
@@ -531,8 +563,14 @@ class CompilationEngine:
 
         args_num = 0
 
+        print("Current token: ", self.tokenizer.current_token_instance.text)
+        print("Next token: ", self.tokenizer.next_token_instance.text)
+        
         if self._empty_expression_list():
+            print("it's not an empty expression list")
             return args_num
+        else:
+            print("it's not an empty expression list")
         
         # skip initial token (
         self.tokenizer.advance()
@@ -567,6 +605,11 @@ class CompilationEngine:
         if position == "current":
             if keyword_token == "expression":
                 return (not self.tokenizer.current_token_instance.text in [';', ',', ']', ')'])
+            elif keyword_token == "while":
+                return (not self.tokenizer.current_token_instance.text in ['}'])
+            elif keyword_token == "let":
+                print("the check value is ", (not self.tokenizer.current_token_instance.text == ';'))
+                return (not self.tokenizer.current_token_instance.text == ';')
             else:
                 return (not self.tokenizer.current_token_instance.text in self.TERMINATING_TOKENS[keyword_token]) 
         elif position == "next":
