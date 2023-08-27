@@ -143,7 +143,6 @@ class CompilationEngine:
             self.tokenizer.advance()
 
         print(f"compile subroutine variable done, the local vars number is {num_locals}")
-
         print("Subroutine level symbol table is:", self.subroutine_symbol_table.dumps())
 
         # write function command
@@ -152,10 +151,14 @@ class CompilationEngine:
             num_locals=num_locals,
         )
 
+        # alloc memory for the obj to be constructed, pop the base address to pointer 0
         if subroutine_type == "constructor":
             arg_num = self.class_symbol_table.var_count("field")
             self.vm_writer.write_push("constant", arg_num)
             self.vm_writer.write_call("Memory.alloc", 1)
+            self.vm_writer.write_pop("pointer", 0)
+        elif subroutine_type == "method":
+            self.vm_writer.write_push("argument", 0)
             self.vm_writer.write_pop("pointer", 0)
 
         while self._not_terminal_token_for("subroutine"):
@@ -245,7 +248,9 @@ class CompilationEngine:
         # get caller name
         caller_name = self.tokenizer.current_token_instance.text
 
-        # look up the caller name in symbol table
+        # look up the caller name in symbol table.
+        # I think the object must be stored in the class level symbol table for now
+        # maybe it's a field type  
         symbol = self._find_symbol_in_symbol_tables(symbol_name=caller_name)
 
         # skip .
@@ -256,8 +261,8 @@ class CompilationEngine:
         subroutine_name = self.tokenizer.current_token_instance.text
 
         if symbol:
-            # it's a variable, push value onto local segment
-            segment = 'local'
+            # since it's a class level symbol, field type, we should access it using this pointer
+            segment = 'this'
             index = symbol['index']
             symbol_type = symbol['type']
             self.vm_writer.write_push(segment=segment, index=index)
@@ -616,8 +621,13 @@ class CompilationEngine:
         symbol_name = self.tokenizer.identifier()
         symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
 
+        print(f"Symbol name: {symbol_name}, Symbol kind: {symbol['kind']}")
+        
         if symbol:
-            self.vm_writer.write_push(segment=symbol['kind'], index=symbol['index'])
+            if symbol['kind'] == 'field':
+                self.vm_writer.write_push(segment='this', index=symbol['index'])
+            else:
+                self.vm_writer.write_push(segment=symbol['kind'], index=symbol['index'])
         else:
             raise Exception(f"Identifier {symbol_name} not found in symbol table.")
     
