@@ -54,6 +54,7 @@ class CompilationEngine:
         self.vm_writer = VMWriter(output_file_name)
         self.class_name = None
         self.label_counter = LabelCounter(labels=self.TOKENS_NEED_LABELS)
+        self.while_statement_count = 0
 
     def compile_class(self):
         self.tokenizer.setup()
@@ -165,6 +166,7 @@ class CompilationEngine:
             self.compile_statements()
 
         # need push the base of object and return
+        self.label_counter.reset_counts()
 
     def compile_parameter_list(self):
         """
@@ -433,12 +435,15 @@ class CompilationEngine:
         # 'while' '(' expression ')' '{' statements '}'
         """
 
+        temp_while_count = self.while_statement_count
+        self.while_statement_count += 1
+
         print("Start to compile while statement")
         print("Current token: ", self.tokenizer.current_token_instance.text)
         
         # write while label
         self.vm_writer.write_label(
-            label='WHILE_EXP{}'.format(self.label_counter.get('while'))
+            label='WHILE_EXP{}'.format(temp_while_count)
         )
 
         # advance to expression start (
@@ -447,40 +452,34 @@ class CompilationEngine:
 
         # compile expression in ()
         self.compile_expression()
-
+        
         # test the expression, if false, go to the WHILE_END label
         self.vm_writer.write_unary(command='~')
-        self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(self.label_counter.get('while')))
+        self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(temp_while_count))
 
         # start to compile while statement body
-
         print("Start to compile while statement body")
 
         while self._not_terminal_token_for('while'):
-
-            print("Current token first: ", self.tokenizer.current_token_instance.text)
-            
             self.tokenizer.advance()
 
-            print("Current token second: ", self.tokenizer.current_token_instance.text)
-
             if self._statement_token():
-                self.compile_statements()
+                if self.tokenizer.current_token_instance.text == "while":
+                    self.compile_statements()
+                else:
+                    self.compile_statements()
 
         print("Compile while statement done, ready to write WHILE_END label")
 
         # write goto WHILE_EXP
         self.vm_writer.write_goto(
-            label='WHILE_EXP{}'.format(self.label_counter.get('while'))
+            label='WHILE_EXP{}'.format(temp_while_count)
         )
 
         # write WHILE_END label
         self.vm_writer.write_label(
-            label='WHILE_END{}'.format(self.label_counter.get('while'))
+            label='WHILE_END{}'.format(temp_while_count)
         )
-
-        # increment the label for while
-        self.label_counter.increment('while')
 
         print("Finished compiling while statement")
         
