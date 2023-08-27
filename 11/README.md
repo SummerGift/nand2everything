@@ -50,7 +50,37 @@
 
 ![image-20230820195839376](./figures/image-20230820195839376.png)
 
+### Handling Object Manipulation
 
+最终的机器语言是过程式的，因此编译器需要将面向对象的方法转换为过程调用，对象本身总是被当做第一个参数被传入，这种传入是隐式的。所以在编译 method 时，第一步就需要将默认传入的第一个参数压栈，然后执行 `pop pointer 0`，然后就可以用 this 指针来操作该对象中的数据。
+
+![image-20230827101628251](./figures/image-20230827101628251.png)
+
+在 caller 调用时，需要先将 obj 作为第一个（隐式）参数入栈，然后再将其他 argument 入栈， 最后调用 method 来操作相应的 obj。
+
+![image-20230827102432626](./figures/image-20230827102432626.png)
+
+method 被设计用来操作当前对象，因此每一个 method 都会访问对象的私有数据，method 可以使用 `this i-th` 指针来访问 obj 的 field 数据，首先需要将对象的基地址写入到 pointer 指针。 
+
+![image-20230827103121962](./figures/image-20230827103121962.png)
+
+caller code 和 method code 是单独编译的。
+
+编译器会构建 class 和 method 级别的符号表，但是并不生成任何代码。
+
+![image-20230827103543049](./figures/image-20230827103543049.png)
+
+下图我觉得可能有问题，完成 method 调用后应当将返回的结果 `pop d`，而不是 push d。
+
+![image-20230827110159259](./figures/image-20230827110159259.png)
+
+Compiling a method that return void。
+
+![image-20230827111354382](./figures/image-20230827111354382.png)
+
+**void method should return a dummy value. Callers of void methods are responsible for removing the returned value from the stack.**
+
+![image-20230827111159310](./figures/image-20230827111159310.png)
 
 ## Testing
 
