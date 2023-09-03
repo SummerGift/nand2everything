@@ -78,9 +78,37 @@ Compiling a method that return void。
 
 ![image-20230827111354382](./figures/image-20230827111354382.png)
 
-**void method should return a dummy value. Callers of void methods are responsible for removing the returned value from the stack.**
+void method should return a dummy value. Callers of void methods are responsible for removing the returned value from the stack.
 
 ![image-20230827111159310](./figures/image-20230827111159310.png)
+
+### Handing Array
+
+#### Creating arrays
+
+![image-20230903174315054](./figures/image-20230903174315054.png)
+
+#### Array Manipulating
+
+将 array 的基地址和偏移量相加，pop 到 pointer 1 指针中，然后通过 that 0 访问数组元素。
+
+![image-20230903174542681](./figures/image-20230903174542681.png)
+
+尝试将访问数组元素的策略通用化：
+
+![image-20230903174835171](./figures/image-20230903174835171.png)
+
+但是当我们想将执行 `a[i] = b[j]` 时，发现需要多次使用 pointer 1 指针，因此会出现错误，需要引入 temp 段来临时存放元素地址：
+
+![image-20230903175115489](./figures/image-20230903175115489.png)
+
+![image-20230903175124795](./figures/image-20230903175124795.png)
+
+通过这种方法，即使是处理复杂的 array 表达式也没有问题。
+
+![image-20230903175150163](./figures/image-20230903175150163.png)
+
+
 
 ## Testing
 
