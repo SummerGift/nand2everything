@@ -80,3 +80,8 @@ Project 10, the compiler front-end, was a big challenge for me. Understanding le
 
 Now I start to finish the second part of the compiler, code generation, which is the conversion of the abstract syntax tree compiled on the front end of the compiler into code that can actually run on the virtual machine.
 
+It took me four Sundays to finished the project11. I'm happy to be able to build a working compiler from scratch.
+
+### [Project 12 Operating System](11)
+
+Start to write an operating system for hack platform.
