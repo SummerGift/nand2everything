@@ -25,6 +25,7 @@ class CompilationEngine:
         "subroutine_body": ["{"],
         "expression_list": ["("],
         "expression": ["=", "[", "("],
+        'array': [ '[' ],
         "conditional": ["if", "else"],
     }
     TERMINATING_TOKENS = {
@@ -337,6 +338,20 @@ class CompilationEngine:
         symbol_name = self.tokenizer.current_token_instance.text
         symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
 
+        print("Let varName: ", symbol_name)
+
+        array_assignment = self._starting_token_for(keyword_token='array', position='next')
+        if array_assignment:
+            print("it' a array assignment")
+            # get to index expression
+            self.tokenizer.advance()
+            self.tokenizer.advance()
+            # compile it
+            self.compile_expression()
+            self.vm_writer.write_push(segment=symbol['kind'], index=symbol['index'])
+            # add two addresses
+            self.vm_writer.write_arithmetic(command='+')
+
         # advance to '='
         while not self.tokenizer.current_token_instance.text == '=':
             self.tokenizer.advance()
@@ -361,8 +376,18 @@ class CompilationEngine:
 
         print("After compiling expression, start to pop value to variable")
 
-        # pop the expression value to the symbol's location
-        self.vm_writer.write_pop(segment=segment, index=symbol['index'])
+        if not array_assignment:
+            # pop the expression value to the symbol's location
+            self.vm_writer.write_pop(segment=segment, index=symbol['index'])
+        else:
+            # save the expression value onto temp 0 and then put it into array
+            self.vm_writer.write_pop(segment='temp', index='0')
+            # pop the address saved before onto pointer 1
+            self.vm_writer.write_pop(segment='pointer', index='1')
+            self.vm_writer.write_push(segment='temp', index='0')
+            self.vm_writer.write_pop(segment='that', index='0')
+
+        print("Finished compile let statement")
 
     def compile_if(self):
         """
@@ -512,48 +537,79 @@ class CompilationEngine:
         # term (op term)*
         such as 1 + (2 * 3)
         """
-
-        print("Start to compile expression")
+        print("Start to compile expression. Current token: ", self.tokenizer.current_token_instance.text)
 
         ops = []
 
         while self._not_terminal_token_for('expression'):
 
-            # handle subroutine call
+            # Check if current token is a subroutine call
             if self._subroutine_call():
+                print("Subroutine call detected.")
                 self.compile_subroutine_call()
 
-            # handle const int number
+            # Check if current token is an array expression
+            elif self._array_expression():
+                print("Array expression detected.")
+                self.compile_array_expression()
+
+            # Check if current token is a constant integer
             elif self.tokenizer.current_token_instance.text.isdigit():
+                print("Constant integer detected.")
                 self.vm_writer.write_push(
                     segment="constant",
                     index=self.tokenizer.current_token_instance.text)
-            
-            # return the pointer of the object just created
+
+            # Check if current token is 'this'
             elif self.tokenizer.current_token_instance.text == "this":
+                print("'this' keyword detected.")
                 self.vm_writer.write_push(segment='pointer', index='0')
 
-            # push symbol in the symbol table
+            # Check if current token is an identifier
             elif self.tokenizer.current_token_instance.is_identifier():
+                print("Identifier detected.")
                 self.push_identifier()
-            # need to distinguish the difference between sub and neg
+
+            # Check if current token is a binary operator
             elif self.tokenizer.current_token_instance.is_operator() and not self.tokenizer.is_likely_unary_operator():
+                print("Binary operator detected.")
                 ops.insert(0, Operator(token=self.tokenizer.current_token_instance.text, category='bi'))
+            
+            # Check if current token is a unary operator
             elif self.tokenizer.current_token_instance.is_unary_operator():
+                print("Unary operator detected.")
                 ops.insert(0, Operator(token=self.tokenizer.current_token_instance.text, category='unary'))
-            elif self._starting_token_for('expression'):
-                # skif the start token (
-                self.tokenizer.advance()
-                self.compile_expression()
 
-            elif self.tokenizer.null():
-                self.vm_writer.write_push(segment='constant', index=0)
-
-            # handle boolean type
+            # Check if current token is a boolean
             elif self.tokenizer.current_token_instance.is_boolean():
+                print("Boolean detected.")
                 self.vm_writer.write_push(segment='constant', index='0')
                 if self.tokenizer.current_token_instance.text == 'true':
                     self.vm_writer.write_unary(command='~')
+            
+            # Check if current token is the start of an expression
+            elif self._starting_token_for('expression'):
+                print("Start of an expression detected.")
+                # Skip the start token (
+                self.tokenizer.advance()
+                self.compile_expression()
+            
+            # Check if current token is null
+            elif self.tokenizer.null():
+                print("Null detected.")
+                self.vm_writer.write_push(segment='constant', index=0)
+            else:
+                print("String constant detected.")
+                # handle string const
+                string_length = len(self.tokenizer.current_token_instance.text)
+                self.vm_writer.write_push(segment='constant', index=string_length)
+                self.vm_writer.write_call(name='String.new', num_args=1)
+                # build string from chars
+                for char in self.tokenizer.current_token_instance.text:
+                    if not char == '"':
+                        ascii_value_of_char = ord(char)
+                        self.vm_writer.write_push(segment='constant', index=ascii_value_of_char)
+                        self.vm_writer.write_call(name='String.appendChar', num_args=2)
 
             self.tokenizer.advance()
 
@@ -596,7 +652,7 @@ class CompilationEngine:
         print("Next token: ", self.tokenizer.next_token_instance.text)
         
         if self._empty_expression_list():
-            print("it's not an empty expression list")
+            print("it's an empty expression list")
             return args_num
         else:
             print("it's not an empty expression list")
@@ -710,4 +766,38 @@ class CompilationEngine:
                 self.vm_writer.write_push(segment=symbol['kind'], index=symbol['index'])
         else:
             raise Exception(f"Identifier {symbol_name} not found in symbol table.")
+        
+    def _array_expression(self):
+        return self.tokenizer.identifier() and self._starting_token_for(keyword_token='array', position='next')
+    
+    def compile_array_expression(self):
+        """
+        Handles array expressions in the code
+        """
+
+        # Get the array name
+        array_name = self.tokenizer.current_token_instance.text
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=array_name)
+
+        print("Start to compile array expression")
+        print("Array name: ", array_name)
+
+        # get to index expression
+        self.tokenizer.advance()
+        self.tokenizer.advance()
+
+        self.compile_expression()
+
+        # push array base address onto stack
+        self.vm_writer.write_push(segment='local', index=symbol['index'])
+
+        # add the offset from expression and base addr of array
+        self.vm_writer.write_arithmetic(command='+')
+
+        # push the item address onto pointer 1
+        self.vm_writer.write_pop(segment="pointer", index='1')
+
+        # push the value onto stack
+        self.vm_writer.write_push(segment="that", index='0')
+
     

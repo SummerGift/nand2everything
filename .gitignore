@@ -1,3 +1,7 @@
 *.pyc
 *.xml
 material/tools/bin/Virtual Machine Emulator.dat
+11/source/project11.zip
+*.vm
+compile_log
+.vscode/launch.json
