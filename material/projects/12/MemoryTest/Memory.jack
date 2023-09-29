@@ -1,34 +1,113 @@
-// This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
-// File name: projects/12/Memory.jack
-
-/**
- * This library provides two services: direct access to the computer's main
- * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
- * consists of 32,768 words, each holding a 16-bit binary number.
- */ 
 class Memory {
+    static Array memoryBaseAddress, freeList;
 
     /** Initializes the class. */
     function void init() {
+        var int len;
+        // heap address 2048--16383
+
+        let memoryBaseAddress = 0;
+        let len = 16383 - 2048 + 1;
+        let freeList = 2048;
+
+        // 0 next segment
+        // 1 segment block size
+        let freeList[0] = null;
+        let freeList[1] = len - 2;
+
+        return;
     }
 
     /** Returns the RAM value at the given address. */
     function int peek(int address) {
+        return memoryBaseAddress[address];
     }
 
     /** Sets the RAM value at the given address to the given value. */
     function void poke(int address, int value) {
+        let memoryBaseAddress[address] = value;
+        return;
     }
 
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
+        var int allocSize;
+        var Array segment;
+
+        let allocSize = size + 2;
+
+        if (freeList[1] > allocSize) {
+            let freeList[1] = freeList[1] - allocSize;
+            let segment = freeList + 2 + freeList[1];
+            let segment[0] = null;
+            let segment[1] = size;
+        } else {
+            let segment = Memory.bestFit(size);
+        }
+
+        // block
+        return segment + 2;
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
+        var Array segment, pre, next, temp;
+
+        let segment = o - 2;
+        let pre = freeList;
+        let next = freeList[0];
+
+        while (~(next = null) & (next < segment)) {
+            let pre = next;
+            let next = next[0];
+        }
+
+        if (next = null) {
+            let segment[0] = null;
+            let pre[0] = segment;
+        } else {
+            let temp = pre[0];
+            let pre[0] = segment;
+            let segment[0] = temp;
+        }
+
+        if ((segment + segment[1] + 2) = next) {
+            let segment[1] = segment[1] + next[1] + 2;
+            let segment[0] = next[0];
+        }
+
+        if ((pre + pre[1] + 2) = segment) {
+            let pre[1] = pre[1] + segment[1] + 2;
+            let pre[0] = segment[0];
+        }
+        return;
     }    
+
+
+    function Array bestFit(int size) {
+        var Array temp, segment;
+        var int tempSize;
+
+        let tempSize = size + 2;
+        let temp = freeList;
+
+        while (temp[1] < tempSize) {
+            // next address
+            if (temp[0] = null) {
+                do Sys.error(5);
+                return 0;
+            } else {
+                let temp = temp[0];
+            }
+        }
+
+        let temp[1] = temp[1] - tempSize;
+        let segment = temp + 2 + temp[1];
+        let segment[0] = null;
+        let segment[1] = size;
+
+        return segment;
+    }
 }
